@@ -2,7 +2,7 @@
 import { CamlQueryBuilder } from "../../src/utils/queryBuilders/CamlQueryBuilder";
 describe("CamlQueryBuilder", () => {
 	test("should build a query with a two queries", () => {
-		let query = `<And><Eq><FieldRef Name="ValoTeamworkStatus" /><Value Type="Choice">Ordered</Value></Eq><Eq><FieldRef Name="_ModerationStatus" /><Value Type="ModStat">Pending</Value></Eq></And>`;
+		let query = `<And><Eq><FieldRef Name="Status" /><Value Type="Choice">Ordered</Value></Eq><Eq><FieldRef Name="_ModerationStatus" /><Value Type="ModStat">Pending</Value></Eq></And>`;
 		let additionalQuery = `<Eq><FieldRef Name="Test" /><Value Type="Choice">Test 1</Value></Eq>`;
 
 		const expectedQuery = `<And>${query}${additionalQuery}</And>`;

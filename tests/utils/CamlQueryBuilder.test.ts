@@ -58,4 +58,27 @@ describe("CamlQueryBuilder", () => {
 			});
 		}).toThrowError("Field name is required");
 	})
+	test("should throw and exception for not ok field type", () => {
+		let camlQueryBuilder = new CamlQueryBuilder();
+
+		expect(()=>{
+			camlQueryBuilder.withFieldQuery({
+				name: "Test",
+				value: "Test 2",
+				type: "",
+				comparer: "Eq"
+			});
+		}).toThrowError("Field type is required");
+	})
+	test("should default to Eq for not ok field comparer", () => {
+		let camlQueryBuilder = new CamlQueryBuilder();
+		let query = camlQueryBuilder.withFieldQuery({
+			name: "Test",
+			value: "Test 2",
+			type: "Text",
+			//@ts-ignore
+			comparer: ""
+		}).build();
+		expect(query).toBe("<Eq><FieldRef Name='Test' /><Value Type='Text'>Test 2</Value></Eq>")
+	})
 });

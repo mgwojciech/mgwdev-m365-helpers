@@ -5,7 +5,7 @@ export class GraphODataPagedDataProvider<T> implements IPagedDataProvider<T>{
     protected filterQuery: string = "";
     protected orderQuery: string = "";
     protected nextPageLink: string = "";
-    protected previousPages: string[];
+    protected previousPages: string[] = [];
     protected previousPageIndex: number = -1;
     public pageSize: number = 25;
     public allItemsCount: number = -1;
@@ -13,7 +13,7 @@ export class GraphODataPagedDataProvider<T> implements IPagedDataProvider<T>{
 
     }
     protected async getAllItemsCount(): Promise<number> {
-        if(this.skipCountCheck){
+        if (this.skipCountCheck) {
             return -1;
         }
         let query = this.getQuery();
@@ -33,12 +33,22 @@ export class GraphODataPagedDataProvider<T> implements IPagedDataProvider<T>{
     }
     protected buildInitialQuery() {
         let query = this.getQuery();
-        let apiUri = `${this.resourceQuery}?$filter=${query}&$top=${this.pageSize}&$orderBy=${this.orderQuery}`;
+        let apiUri = `${this.resourceQuery}?$top=${this.pageSize}&$orderBy=${this.orderQuery}`;
+        if (query) {
+            apiUri += `&$filter=${query}`;
+        }
 
         return apiUri;
     }
     protected async callGraphAPI(url: string): Promise<T[]> {
-        throw new Error("Method not implemented.");
+        let response = await this.graphClient.get(url);
+        if (response.ok) {
+            let result = await response.json();
+            let data = result.value;
+            this.nextPageLink = result["@odata.nextLink"];
+            return data;
+        }
+        throw new Error(await response.text());
     }
     public setQuery(value: string) {
         this.filterQuery = value;
@@ -53,6 +63,8 @@ export class GraphODataPagedDataProvider<T> implements IPagedDataProvider<T>{
         if (!this.isNextPageAvailable()) {
             return [];
         }
+        this.previousPageIndex++;
+        this.previousPages.push(this.nextPageLink);
         return this.callGraphAPI(this.nextPageLink);
     }
     public isNextPageAvailable(): boolean {

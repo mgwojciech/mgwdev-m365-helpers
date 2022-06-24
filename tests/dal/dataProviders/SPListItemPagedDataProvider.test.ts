@@ -1,13 +1,7 @@
 ///<reference types="jest" />
+import { deepStrictEqual } from "assert";
 import { SPListItemCamlPagedDataProvider } from "../../../src/dal/dataProviders/SPListItemCamlPagedDataProvider";
 
-jest.mock("@microsoft/sp-http", () => ({
-	SPHttpClient: {
-		configurations: {
-			v1: "v1"
-		}
-	}
-}));
 describe("SPListItemCamlPagedDataProvider", () => {
 	test("should get data without any filter query", async () => {
 		let expectedItems = [{
@@ -29,9 +23,9 @@ describe("SPListItemCamlPagedDataProvider", () => {
 				json: () => Promise.resolve({ ItemCount: expectedTotalCount })
 			});
 		});
-		jest.spyOn(spHttpClientMock, "post").mockImplementation((url, config, options) => {
+		jest.spyOn(spHttpClientMock, "post").mockImplementation((url, options) => {
 			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream")).toBeGreaterThan(-1);
-			
+
 			let deserializedBody = JSON.parse(options.body);
 			let viewQuery = deserializedBody.parameters.ViewXml;
 
@@ -61,9 +55,9 @@ describe("SPListItemCamlPagedDataProvider", () => {
 			get: (url) => { },
 			post: (url, config, body) => { }
 		}
-		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
+		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, options) => {
 			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream")).toBeGreaterThan(-1);
-			
+
 			let deserializedBody = JSON.parse(options.body);
 			let viewQuery = deserializedBody.parameters.ViewXml;
 
@@ -88,7 +82,7 @@ describe("SPListItemCamlPagedDataProvider", () => {
 		expect(actual).toEqual(expectedItems);
 		expect(dataProvider.allItemsCount).toEqual(expectedTotalCount);
 	});
-	test("should execute pagination and disable next page", async ()=>{
+	test("should execute pagination and disable next page", async () => {
 		let expectedItems = [{
 			ID: 1
 		}, {
@@ -135,5 +129,71 @@ describe("SPListItemCamlPagedDataProvider", () => {
 		let actualSecondPage = await dataProvider.getNextPage();
 		expect(actualSecondPage).toEqual(expectedItemsOnTheSecondPage);
 		expect(dataProvider.isNextPageAvailable()).toBe(false);
+	});
+	test("should throw api exception", async () => {
+		let spHttpClientMock = {
+			get: (url) => { },
+			post: (url, config, body) => { }
+		}
+		jest.spyOn(spHttpClientMock, "get").mockImplementation((url) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=ItemCount")).toBeGreaterThan(-1);
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ ItemCount: 1 })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementation((url, options) => {
+			return Promise.resolve({ ok: false, text: () => Promise.resolve("Some exception") });
+		});
+		let dataProvider = new SPListItemCamlPagedDataProvider(spHttpClientMock as any, "/sites/test-site", "test-list-id");
+
+		await expect(dataProvider.getData()).rejects.toThrow("Some exception");
+	});
+	test("should use custom map method", async () => {
+		let expectedItems = [{
+			ID: 1
+		}, {
+			ID: 2
+		}, {
+			ID: 3
+		}];
+		let expectedObjects = [{
+			Title: "Id: 1"
+		},{
+			Title: "Id: 2"
+		}, {
+			Title: "Id: 3"
+		}]
+		let expectedTotalCount = 123;
+		let spHttpClientMock = {
+			get: (url) => { },
+			post: (url, config, body) => { }
+		}
+		jest.spyOn(spHttpClientMock, "get").mockImplementation((url) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=ItemCount")).toBeGreaterThan(-1);
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ ItemCount: expectedTotalCount })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementation((url, options) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream")).toBeGreaterThan(-1);
+
+			let deserializedBody = JSON.parse(options.body);
+			let viewQuery = deserializedBody.parameters.ViewXml;
+
+			expect(viewQuery.indexOf("<View Scope=\"RecursiveAll\">")).toBeGreaterThan(-1);
+			expect(viewQuery.indexOf("<Where>")).toBeLessThan(0);
+
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ Row: expectedItems })
+			});
+		});
+		let dataProvider = new SPListItemCamlPagedDataProvider(spHttpClientMock as any, "/sites/test-site", "test-list-id",["ID"],(item)=>({
+			Title: `Id: ${item.ID}`
+		}));
+		let actual = await dataProvider.getData();
+		deepStrictEqual(actual, expectedObjects);
 	})
 });

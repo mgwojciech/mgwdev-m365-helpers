@@ -4,13 +4,13 @@ import { assert } from "chai";
 import { TestingUtilities } from "../../TestingUtilities";
 import { BatchHandler } from "../../../src/dal/http/BatchHandler";
 
-describe("BatchGraphClient", ()=>{
-	test("should batch get requests", async () => {
+describe("BatchGraphClient", () => {
+    test("should batch get requests", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return Promise.resolve({
                     ok: true,
                     json: () => Promise.resolve({
@@ -48,6 +48,41 @@ describe("BatchGraphClient", ()=>{
             value: [{
                 id: "Test group id"
             }]
+        });
+        await me.text();
+    });
+    test("should batch stack same request", async () => {
+        let baseClient = {
+            get: (url, options) => {
+                throw "Don't call get!"
+            },
+            post: (url, options) => {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        responses: [
+                            {
+                                status: 200,
+                                body: {
+                                    displayName: "Test User"
+                                },
+                                id: encodeURIComponent("/me")
+                            }
+                        ],
+                    })
+                });
+            }
+        }
+        let batchClient = new BatchGraphClient(baseClient as any);
+        let mePromise = batchClient.get("/me");
+        let otherMePromise = batchClient.get("/me");
+        let me = await mePromise;
+        let group = await otherMePromise;
+        assert.deepEqual((await me.json()), {
+            displayName: "Test User"
+        });
+        assert.deepEqual((await group.json()), {
+            displayName: "Test User"
         });
     });
     test("should request two batches", async () => {
@@ -135,10 +170,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should batch get requests", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return Promise.resolve({
                     ok: true,
                     json: () => Promise.resolve({
@@ -184,10 +219,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should batch v1 request separately", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 if (url.indexOf("/v1.0/") >= 0) {
                     return Promise.resolve({
                         ok: true,
@@ -234,10 +269,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should batch v1 request separately (different resources)", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 if (url.indexOf("/v1.0/") >= 0) {
                     return Promise.resolve({
                         ok: true,
@@ -284,10 +319,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should retry single request", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return {}
             }
         }
@@ -345,10 +380,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should retry single request to v1", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return {}
             }
         }
@@ -413,10 +448,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should retry 5 times and error request", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return {}
             }
         }
@@ -483,10 +518,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should retry 5 times and error request (next request should work)", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return {}
             }
         }
@@ -589,10 +624,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should retry and concurrent request should be called", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return {}
             }
         }
@@ -658,10 +693,10 @@ describe("BatchGraphClient", ()=>{
     });
     test("should split bigger batch to subsequent requests", async () => {
         let baseClient = {
-            get: (url,  options) => {
+            get: (url, options) => {
                 throw "Don't call get!"
             },
-            post: (url,  options) => {
+            post: (url, options) => {
                 return Promise.resolve({
                     ok: true,
                     json: () => Promise.resolve({
@@ -745,5 +780,46 @@ describe("BatchGraphClient", ()=>{
             }]
         });
     });
+    test("should proxy other requests", async () => {
+        let baseClient = {
+            get: (url, options) => {
+                throw "Don't call get!"
+            },
+            post: (url, options) => {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({})
+                });
+            },
+            patch: (url, options) => {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({})
+                });
+            },
+            put: (url, options) => {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({})
+                });
+            },
+            delete: (url, options) => {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({})
+                });
+            },
+        }
+        let batchClient = new BatchGraphClient(baseClient as any);
+        let postSpy = jest.spyOn(baseClient, "post");
+        let patchSpy = jest.spyOn(baseClient, "patch");
+        let putSpy = jest.spyOn(baseClient, "put");
+        let deleteSpy = jest.spyOn(baseClient, "delete");
+
+        await Promise.all([batchClient.post(""), batchClient.patch(""), batchClient.put(""), batchClient.delete("")]);
+        expect(postSpy).toBeCalledTimes(1);
+        expect(patchSpy).toBeCalledTimes(1);
+        expect(putSpy).toBeCalledTimes(1);
+        expect(deleteSpy).toBeCalledTimes(1);
+    })
 });
-				

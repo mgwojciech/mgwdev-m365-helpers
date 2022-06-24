@@ -1,5 +1,5 @@
 import { IPagedDataProvider } from "./IPagedDataProvider";
-import { SPHttpClient } from "@microsoft/sp-http";
+import { IHttpClient } from "../http/IHttpClient";
 
 /**
  * Uses RenderListDataAsStream (CamlQuery) to get list items.
@@ -14,7 +14,15 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
     protected currentLink: string = "";
     protected query: string = "";
     public allItemsCount: number = 0;
-    constructor(protected spHttpClient: SPHttpClient, protected siteUrl: string, protected listId: string, public selectedFields: string[] = [], public mapMethod?: (item: any) => T) {
+    /**
+     * Creates new instance of PagedDataProvider which will use caml query to filter data.
+     * @param spHttpClient SharePoint REST API client - SPFxSPHttpClient for example.
+     * @param siteUrl Site url of a site hosting the list.
+     * @param listId List id of list You want to query.
+     * @param selectedFields Array of internal names of fields You want to get (optional).
+     * @param mapMethod Custom method used to map result from RenderListDataAsStream to Your domain object (optional).
+     */
+    constructor(protected spHttpClient: IHttpClient, protected siteUrl: string, protected listId: string, public selectedFields: string[] = [], public mapMethod?: (item: any) => T) {
     }
 
     public async getData(): Promise<T[]> {
@@ -26,7 +34,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
     }
     public async getAllItemsCount(): Promise<number> {
         if (!this.query) {
-            let response = await this.spHttpClient.get(`${this.siteUrl}/_api/web/lists('${this.listId}')?$select=ItemCount`, SPHttpClient.configurations.v1);
+            let response = await this.spHttpClient.get(`${this.siteUrl}/_api/web/lists('${this.listId}')?$select=ItemCount`);
             if (response.ok) {
                 let data = await response.json();
                 this.allItemsCount = data.ItemCount;
@@ -34,7 +42,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
         }
         else {
             let camlQuery = `<View Scope="RecursiveAll"><Query><Where>${this.query}</Where><ViewFields><FieldRef Name='ID' /></ViewFields></Query></View>`;
-            let response = await this.spHttpClient.post(`${this.siteUrl}/_api/web/lists('${this.listId}')/RenderListDataAsStream`, SPHttpClient.configurations.v1, {
+            let response = await this.spHttpClient.post(`${this.siteUrl}/_api/web/lists('${this.listId}')/RenderListDataAsStream`, {
                 headers: {
                     "content-type": "application/json;odata=nometadata",
                     "accept": "application/json;odata=nometadata",
@@ -70,7 +78,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
         return this.previousPageIndex + 1;
     }
     public async getDataWithAPI(url: string): Promise<T[]> {
-        let response = await this.spHttpClient.post(url, SPHttpClient.configurations.v1, {
+        let response = await this.spHttpClient.post(url, {
             headers: {
                 "content-type": "application/json;odata=nometadata",
                 "accept": "application/json;odata=nometadata",
@@ -92,6 +100,9 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
                 return data.Row.map(this.mapMethod);
             }
             return data.Row;
+        }
+        else{
+            throw new Error(await response.text());
         }
     }
     public setQuery(value: string) {

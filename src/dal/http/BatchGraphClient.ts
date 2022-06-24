@@ -59,12 +59,14 @@ export class BatchGraphClient implements IHttpClient {
             setTimeout(this.generateBatch, this.batchWaitTime);
         }
         let promiseId = encodeURIComponent(url);
+        let apiUrl = new URL(url, "https://graph.microsoft.com");
+        let relativeUrl = apiUrl.pathname + apiUrl.search;
         if (this.batch.filter(req => req.id === promiseId)[0]) {
             this.registeredPromises.get(promiseId).push(requestPromise);
         }
         else {
             this.batch.push({
-                url,
+                url: relativeUrl,
                 id: promiseId,
                 method: "GET",
                 headers:{

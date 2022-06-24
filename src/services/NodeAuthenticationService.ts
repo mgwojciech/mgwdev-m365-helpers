@@ -26,7 +26,6 @@ export class NodeAuthenticationService implements IAuthenticationService {
         let codeUrl = await this.clientApp.getAuthCodeUrl(tokenRequest);
         let browserProcess = await open(codeUrl);
         tokenRequest.code = await this.waitForLogIn(browserProcess);
-        console.log(tokenRequest.code);
         let tokenResponse = await this.clientApp.acquireTokenByCode(tokenRequest);
         return tokenResponse.accessToken;
     }

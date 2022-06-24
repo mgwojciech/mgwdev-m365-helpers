@@ -2,9 +2,10 @@
   "name": "mgwdev-m365-helpers",
   "version": "0.0.1",
   "description": "Helper library to communicate with M365 resources",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "test"
+    "test": "test",
+    "build": "tsc && tsc --outDir lib-commonjs -module commonjs"
   },
   "keywords": [
     "SharePoint",
@@ -19,6 +20,7 @@
     "@types/jest": "^28.1.3",
     "chai": "^4.3.6",
     "jest": "^28.1.1",
+    "jest-environment-jsdom": "^28.1.1",
     "msal": "^1.4.16",
     "ts-jest": "^28.0.5",
     "typescript": "^4.7.4"

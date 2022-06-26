@@ -44,7 +44,7 @@ let [me, photo, presence] = await Promise.all([
 Or in SPFx context
 
 ``` Javascript
-let spfxGraphClient = this.context.aadHttpClientFactory.getClient('https://graph.microsoft.com');
+let spfxGraphClient = await this.context.aadHttpClientFactory.getClient('https://graph.microsoft.com');
 
 let client = new BatchGraphClient(new SPFxGraphHttpClient(spfxGraphClient));
 
@@ -92,9 +92,9 @@ GraphODataPagedDataProvider will allow You to easy paginate through resources ex
 Note: Not all endpoints exposed by MS Graph API allow pagination. You can check if an endpoint allows pagination in Graph Explorer.
 `
 ```Javascript
-let spfxGraphClient = this.context.aadHttpClientFactory.getClient('https://graph.microsoft.com');
+let spfxGraphClient = await this.context.aadHttpClientFactory.getClient('https://graph.microsoft.com');
 
-let client = new BatchGraphClient(new SPFxGraphHttpClient(spfxGraphClient));
+let batchClient = new BatchGraphClient(new SPFxGraphHttpClient(spfxGraphClient));
 let pagedProvider = new GraphODataPagedDataProvider<any>(batchClient, "https://graph.microsoft.com/v1.0/users");
 pagedProvider.pageSize = 10;
 

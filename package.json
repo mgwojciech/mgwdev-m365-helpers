@@ -1,8 +1,9 @@
 {
   "name": "mgwdev-m365-helpers",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Helper library to communicate with M365 resources",
-  "main": "lib/index.js",
+  "main": "lib-commonjs/index.js",
+  "module": "lib/index.js",
   "scripts": {
     "test": "test",
     "build": "tsc && tsc --outDir lib-commonjs -module commonjs"

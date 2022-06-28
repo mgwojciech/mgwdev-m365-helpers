@@ -1,6 +1,9 @@
 import { IHttpClient } from "../http";
 import { IPagedDataProvider } from "./IPagedDataProvider";
 
+/**
+ * Handles pagination for queries against MS Graph API resources.
+ */
 export class GraphODataPagedDataProvider<T> implements IPagedDataProvider<T>{
     protected filterQuery: string = "";
     protected orderQuery: string = "";
@@ -9,6 +12,12 @@ export class GraphODataPagedDataProvider<T> implements IPagedDataProvider<T>{
     protected previousPageIndex: number = -1;
     public pageSize: number = 25;
     public allItemsCount: number = -1;
+    /**
+     * Initializes new instance of GraphODataPagedDataProvider.
+     * @param graphClient IHttpClient implementation supporting Graph API calls.
+     * @param resourceQuery Base query to the resource. For example https://graph.microsoft.com/v1.0/users.
+     * @param skipCountCheck As some resources does not support $count or You may not want to do extra call, You can skip the call for items count. Defaults to false.
+     */
     constructor(protected graphClient: IHttpClient, protected resourceQuery: string, protected skipCountCheck = false) {
 
     }
@@ -33,7 +42,10 @@ export class GraphODataPagedDataProvider<T> implements IPagedDataProvider<T>{
     }
     protected buildInitialQuery() {
         let query = this.getQuery();
-        let apiUri = `${this.resourceQuery}?$top=${this.pageSize}&$orderBy=${this.orderQuery}`;
+        let apiUri = `${this.resourceQuery}?$top=${this.pageSize}`;
+        if(this.orderQuery){
+            apiUri += `&$orderBy=${this.orderQuery}`;
+        }
         if (query) {
             apiUri += `&$filter=${query}`;
         }

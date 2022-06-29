@@ -1,9 +1,10 @@
 import * as Msal from "msal";
+import { queueRequest } from "../utils/FunctionUtils";
 import { IAuthenticationService } from "./IAuthenticationService";
 
 export class MsalAuthenticationService implements IAuthenticationService {
     protected msalInstance: Msal.UserAgentApplication;
-    private token: string;
+    private resourceTokenMap: Map<string, string> = new Map<string, string>();
     /**
      * Initializes new instance of AuthenticationService
      * @param clientId AppId of an AAD app You configured in AAD.
@@ -24,25 +25,28 @@ export class MsalAuthenticationService implements IAuthenticationService {
         if (console)
             console.log(response);
     }
-    public logIn() {
+    @queueRequest("msalLogin")
+    public logIn(resource: string = "https://graph.microsoft.com") {
         var loginRequest = {
         };
 
         return this.msalInstance.loginPopup(loginRequest)
             .then(response => {
-                this.token = response.accessToken;
-                return response.accessToken;
+                let token = response.accessToken;
+                this.resourceTokenMap.set(resource, token);
+                return token;
             })
     }
     public async getAccessToken(resource: string = "https://graph.microsoft.com"): Promise<string> {
-            if (this.token) {
-                return this.token;
-            }
-            if (this.msalInstance.getAccount()) {
-                return this.getTokenSilent(resource);
-            } else {
-                return this.logIn().then(() => this.getTokenSilent(resource));
-            }
+        let token = this.resourceTokenMap.get(resource);
+        if (token) {
+            return token;
+        }
+        if (this.msalInstance.getAccount()) {
+            return this.getTokenSilent(resource);
+        } else {
+            return this.logIn(resource).then(() => this.getTokenSilent(resource));
+        }
 
     }
 
@@ -52,16 +56,18 @@ export class MsalAuthenticationService implements IAuthenticationService {
         };
         return this.msalInstance.acquireTokenSilent(tokenRequest)
             .then(response => {
-                this.token = response.accessToken;
-                return this.token;
+                let token = response.accessToken;
+                this.resourceTokenMap.set(resource, token);
+                return token;
             })
             .catch(err => {
                 // could also check if err instance of InteractionRequiredAuthError if you can import the class.
                 if (err.name === "InteractionRequiredAuthError") {
                     return this.msalInstance.acquireTokenPopup(tokenRequest)
                         .then(response => {
-                            this.token = response.accessToken;
-                            return this.token;
+                            let token = response.accessToken;
+                            this.resourceTokenMap.set(resource, token);
+                            return token;
                         })
                         .catch(deepErr => {
                             throw deepErr;

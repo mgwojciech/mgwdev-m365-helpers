@@ -12,7 +12,7 @@ export function useStorage(storageKey: string, cacheService: ICacheService = def
             let methodRelatedKey = replaceKeyTokens(storageKey, args);
             return new Promise(async (resolve, reject) => {
                 try {
-                    let storedValue = await cacheService.get(methodRelatedKey);
+                    let storedValue = cacheService.get(methodRelatedKey);
                     if (storedValue) {
                         resolve(storedValue);
                     }

@@ -1,7 +1,9 @@
+import { IDataProvider } from "./IDataProvider";
+
 /**
  * Interface defining all methods needed to handle pagination.
  */
-export interface IPagedDataProvider<T> {
+export interface IPagedDataProvider<T> extends IDataProvider<T[], null> {
     /**
      * Returns first page of content based on query set in setQuery, order set in setOrder and pageSize. Starts new enumeration.
      */

@@ -7,15 +7,15 @@ export class InMemoryCacheService implements ICacheService {
         this.cache = new Map<string, any>();
     }
 
-    public async get<T>(key: string): Promise<T> {
+    public get<T>(key: string): T {
         return this.cache.get(key);
     }
 
-    public async set<T>(key: string, value: T): Promise<void> {
+    public set<T>(key: string, value: T): void {
         this.cache.set(key, value);
     }
 
-    public async remove(key: string): Promise<void> {
+    public remove(key: string): void {
         this.cache.delete(key);
     }
 }

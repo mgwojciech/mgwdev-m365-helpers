@@ -1,7 +1,7 @@
 import { ICacheService } from "../../services";
 import { IDataProvider } from "./IDataProvider";
 
-export class DeferredWithCacheDataProvider<T,U>{
+export class DeferredWithCacheDataProvider<T,U> {
     constructor(public dataProvider: IDataProvider<T,U>, 
         protected cacheService: ICacheService, 
         protected cacheKey: string) {
@@ -9,11 +9,21 @@ export class DeferredWithCacheDataProvider<T,U>{
     }
     public getData(query?: U): { 
         cached: T, 
-        promise: Promise<T> 
+        dataPromise: Promise<T> 
     } {
         return {
             cached: this.cacheService.get(this.cacheKey),
-            promise: this.dataProvider.getData(query).then(data => { 
+            dataPromise: this.dataProvider.getData(query).then(data => { 
+                this.cacheService.set(this.cacheKey, data); 
+                return data; 
+            })
+        }
+    }
+    public getCustomData(getDataCallback: ()=>Promise<T>){
+        
+        return {
+            cached: this.cacheService.get(this.cacheKey),
+            dataPromise: getDataCallback().then(data => { 
                 this.cacheService.set(this.cacheKey, data); 
                 return data; 
             })

@@ -16,7 +16,7 @@ describe("DeferredWithCacheDataProvider", () => {
             "test-key");
         let data = provider.getData();
         expect(data.cached).toBe("Test from cache");
-        let newData = await data.promise;
+        let newData = await data.dataPromise;
         expect(newData).toBe("Test");
         expect(setDataSpy).toBeCalledWith("test-key", "Test");
     });
@@ -36,9 +36,9 @@ describe("DeferredWithCacheDataProvider", () => {
             "test-key");
         let data = provider.getData({ queryProp1: "Test query property" });
         expect(data.cached).toBe("Test from cache");
-        let newData = await data.promise;
+        let newData = await data.dataPromise;
         expect(newData).toBe("Test");
         expect(setDataSpy).toBeCalledWith("test-key", "Test");
         expect(getDataSpy).toHaveBeenCalledWith({ queryProp1: "Test query property" });
-    })
+    });
 });

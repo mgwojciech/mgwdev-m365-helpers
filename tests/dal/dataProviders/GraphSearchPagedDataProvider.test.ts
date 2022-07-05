@@ -96,7 +96,7 @@ describe("GraphSearchPagedDataProvider", () => {
         expect(callBody.requests[0].entityTypes).toMatchObject(["listItem"]);
         expect(callBody.requests[0].query.queryString).toBe("test");
         expect(callBody.requests[0].fields).toMatchObject(["id", "title", "url"]);
-        expect(callBody.requests[0].sortProperties).toMatchObject({
+        expect(callBody.requests[0].sortProperties[0]).toMatchObject({
             name: "TestColumn",
             isDescending: false
         });

@@ -45,10 +45,10 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>{
             }
         }
         if (this.orderColumn) {
-            requestBody.requests[0].sortProperties = {
+            requestBody.requests[0].sortProperties = [{
                 name: this.orderColumn,
                 isDescending: this.isDescending
-            }
+            }]
         }
         if (this.selectFields && this.selectFields.length > 0) {
             requestBody.requests[0].fields = this.selectFields;

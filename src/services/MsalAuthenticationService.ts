@@ -10,7 +10,7 @@ export class MsalAuthenticationService implements IAuthenticationService {
      * Initializes new instance of AuthenticationService
      * @param clientId AppId of an AAD app You configured in AAD.
      */
-    constructor(protected clientId) {
+    constructor(protected clientId, protected scopes: string[] = [".default"]) {
         const msalConfig = {
             auth: {
                 clientId: clientId
@@ -53,7 +53,7 @@ export class MsalAuthenticationService implements IAuthenticationService {
 
     private getTokenSilent(resource: string) {
         var tokenRequest = {
-            scopes: [`${resource}/.default`]
+            scopes: this.scopes.map(scope=>`${resource}/${scope}`)
         };
         return this.msalInstance.acquireTokenSilent(tokenRequest)
             .then(response => {

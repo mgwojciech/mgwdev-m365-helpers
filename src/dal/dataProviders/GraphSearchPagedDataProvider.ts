@@ -67,11 +67,14 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>{
             let responseJson = await searchResponse.json();
             let hitContainer = responseJson.value[0].hitsContainers[0];
             this.allItemsCount = hitContainer.total;
-            return hitContainer.hits.map(hit => ({
-                ...hit.resource,
-                type: hit.resource["@odata.type"],
-                hitResourceIdId: hit.resource.id
-            }));
+            if (this.allItemsCount > 0) {
+                return hitContainer.hits.map(hit => ({
+                    ...hit.resource,
+                    type: hit.resource["@odata.type"],
+                    hitResourceIdId: hit.resource.id
+                }));
+            }
+            return [];
         }
         else {
             throw new Error(await searchResponse.text());

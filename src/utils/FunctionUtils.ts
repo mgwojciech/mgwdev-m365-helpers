@@ -49,7 +49,7 @@ export function queueRequest(methodKey: string) {
                 let activePromise = activePromises.get(methodRelatedKey);
                 if (!activePromise) {
                     activePromise = originalMethod.apply(this, args).then((result: any) => {
-                        resolve(result); 
+                        resolve(result);
                         if (queue.length === 0) {
                             activePromises.delete(methodRelatedKey);
                         }
@@ -82,4 +82,7 @@ export function queueRequest(methodKey: string) {
             });
         }
     }
+}
+export function runWithCache(storageKey: string, cacheService: ICacheService = defaultCacheService) {
+    return useStorage(storageKey, cacheService);
 }

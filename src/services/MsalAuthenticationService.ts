@@ -5,7 +5,7 @@ import { IAuthenticationService } from "./IAuthenticationService";
 
 export class MsalAuthenticationService implements IAuthenticationService {
     protected msalInstance: Msal.UserAgentApplication;
-    private resourceTokenMap: Map<string, string> = new Map<string, string>();
+    protected resourceTokenMap: Map<string, string> = new Map<string, string>();
     /**
      * Initializes new instance of AuthenticationService
      * @param clientId AppId of an AAD app You configured in AAD.
@@ -14,7 +14,7 @@ export class MsalAuthenticationService implements IAuthenticationService {
         const msalConfig = {
             auth: {
                 clientId: clientId,
-                authority: `https://login.microsoftonline.com/${tenantId}/`
+                authority: `https://login.microsoftonline.com/${tenantId}/`,
             }
         };
 

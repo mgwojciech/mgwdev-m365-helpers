@@ -13,6 +13,8 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
     protected previousPageIndex: number = -1;
     protected currentLink: string = "";
     protected query: string = "";
+    protected lastId: number = 0;
+    protected lastRow: number = 0;
     public allItemsCount: number = 0;
     /**
      * Creates new instance of PagedDataProvider which will use caml query to filter data.
@@ -95,6 +97,9 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
             let data = await response.json();
             if (data.Row.length > 0) {
                 this.lastValue = data.Row[data.Row.length - 1][this.orderBy];
+                this.lastValue = this.getLastFieldValue(data.Row);
+                this.lastId = data.Row[data.Row.length - 1].ID;
+                this.lastRow = data.LastRow;
             }
             if (this.mapMethod) {
                 return data.Row.map(this.mapMethod);
@@ -104,6 +109,9 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
         else{
             throw new Error(await response.text());
         }
+    }
+    protected getLastFieldValue(rows: any[]) {
+        return rows[rows.length - 1][this.orderBy];
     }
     public setQuery(value: string) {
         this.query = value;
@@ -116,7 +124,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
         else {
             this.previousPageIndex = this.previousPages.findIndex(p => p === this.currentLink);
         }
-        this.currentLink = `${this.siteUrl}/_api/web/lists('${this.listId}')/RenderListDataAsStream?Paged=TRUE&p_${this.orderBy}=${this.lastValue}`;
+        this.currentLink = `${this.siteUrl}/_api/web/lists('${this.listId}')/RenderListDataAsStream?Paged=TRUE&p_${this.orderBy}=${encodeURIComponent(this.lastValue).toLocaleLowerCase()}&p_ID=${this.lastId}&SortField=${this.orderBy}&SortDir=${this.orderDir === "ASC" ? "Asc" : "Desc"}&PageFirstRow=${this.lastRow + 1}`;
         return this.getDataWithAPI(this.currentLink);
     }
     public isNextPageAvailable(): boolean {

@@ -1,6 +1,7 @@
 import { ArrayUtilities } from "../../utils/ArrayUtilities";
 import { IHttpClient, IHttpClientResponse } from "./IHttpClient";
 import { BatchHandler } from "./BatchHandler";
+import { IBatch } from "../../model/IBatch";
 
 /**
  * A graph client which will automatically batch not awaited get calls.
@@ -8,12 +9,7 @@ import { BatchHandler } from "./BatchHandler";
  * Alternatively You can use Promise.all([client.get("/me"), client.get("/me/photo/$value"),client.get("/me/presence")]).
  */
 export class BatchGraphClient implements IHttpClient {
-    private batch: {
-        id: string;
-        url: string;
-        method: "GET";
-        headers: any;
-    }[] = [];
+    private batch: IBatch[] = [];
     private registeredPromises: Map<string, { resolve, error }[]> = new Map<string, { resolve, error }[]>();
     /**
      * Initializes new instance of BatchGraphClient.

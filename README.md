@@ -57,6 +57,20 @@ let [me, photo, presence] = await Promise.all([
 
 In both cases all three request will be combined into one batch request. Thanks to this You will not have to think about batching ever again. It will just happen.
 
+### BatchSPClient
+
+In a very similar way You can use SPBatchClient to batch requests to SharePoint endpoints.
+Let's consider SPFx scenario
+
+``` Javascript
+let spfxSPClient = new SPFxSPHttpClient(this.context.spHttpClient);
+
+let client = new BatchSPClient(spfxSPClient, this.context.pageContext.web.absoluteUrl);
+
+let [web, site] = await Promise.all([client.get("/_api/web").then(r => r.json()), client.get("/_api/site").then(r => r.json())]);
+
+```
+
 ### SPFxGraphHttpClient
 
 SPFxGraphHttpClient is a simple adapter converting AadHttpClient from @microsoft/sp-http to IHttpClient implementation from this library. One of the advantages of IHttpClient is You don't have to pass HttpClient.configurations.v1 everywhere.

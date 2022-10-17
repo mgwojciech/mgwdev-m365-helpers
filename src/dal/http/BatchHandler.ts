@@ -1,8 +1,9 @@
+import { IBatch } from "../../model/IBatch";
 import { IHttpClient } from "./IHttpClient";
 
 export class BatchHandler {
     public static readonly maxRetries = 5;
-    constructor(protected baseClient: IHttpClient, protected registeredPromises: Map<string, { resolve, error }[]>, protected batch: { id: string; url: string; method: "GET" }[], protected retries: number = 0) { }
+    constructor(protected baseClient: IHttpClient, protected registeredPromises: Map<string, { resolve, error }[]>, protected batch: IBatch[], protected retries: number = 0) { }
 
     public async executeBatch() {
         let betaRequests = this.batch.filter(req => req.url.indexOf("v1.0/") < 0);

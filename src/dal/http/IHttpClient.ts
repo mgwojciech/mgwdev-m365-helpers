@@ -3,6 +3,7 @@ export interface IHttpClientResponse {
     text: () => Promise<string>;
     blob: () => Promise<Blob>;
     ok: boolean;
+    headers?: any;
     status: number;
     statusText?: string;
 }

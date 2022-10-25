@@ -17,7 +17,7 @@ describe("SPListItemCamlPagedDataProvider", () => {
 			post: (url, config, body) => { }
 		}
 		jest.spyOn(spHttpClientMock, "get").mockImplementation((url) => {
-			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=ItemCount")).toBeGreaterThan(-1);
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=itemCount")).toBeGreaterThan(-1);
 			return Promise.resolve({
 				ok: true,
 				json: () => Promise.resolve({ ItemCount: expectedTotalCount })
@@ -114,7 +114,7 @@ describe("SPListItemCamlPagedDataProvider", () => {
 			});
 		});
 		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
-			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream?Paged=TRUE&p_ID=3")).toBeGreaterThan(-1);
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream?TryNewExperienceSingle=TRUE&Paged=TRUE&p_ID=3")).toBeGreaterThan(-1);
 			return Promise.resolve({
 				ok: true,
 				json: () => Promise.resolve({ Row: expectedItemsOnTheSecondPage })
@@ -136,7 +136,7 @@ describe("SPListItemCamlPagedDataProvider", () => {
 			post: (url, config, body) => { }
 		}
 		jest.spyOn(spHttpClientMock, "get").mockImplementation((url) => {
-			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=ItemCount")).toBeGreaterThan(-1);
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=itemCount")).toBeGreaterThan(-1);
 			return Promise.resolve({
 				ok: true,
 				json: () => Promise.resolve({ ItemCount: 1 })
@@ -170,7 +170,7 @@ describe("SPListItemCamlPagedDataProvider", () => {
 			post: (url, config, body) => { }
 		}
 		jest.spyOn(spHttpClientMock, "get").mockImplementation((url) => {
-			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=ItemCount")).toBeGreaterThan(-1);
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')?$select=itemCount")).toBeGreaterThan(-1);
 			return Promise.resolve({
 				ok: true,
 				json: () => Promise.resolve({ ItemCount: expectedTotalCount })

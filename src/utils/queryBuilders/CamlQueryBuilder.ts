@@ -1,3 +1,4 @@
+import { IQueryField } from "../../model";
 import { IQueryBuilder } from "./IQueryBuilder";
 
 export class CamlQueryBuilder implements IQueryBuilder {
@@ -11,21 +12,39 @@ export class CamlQueryBuilder implements IQueryBuilder {
         }
         return this;
     }
-    public withFieldQuery(fieldInfo: {name:string, value: string, type: string, comparer: "Eq" | "Contains"}, joinBy: "And" | "Or" = "And"): CamlQueryBuilder {
-        if(!fieldInfo.name){
+    public withFieldQuery(fieldInfo: IQueryField, joinBy: "And" | "Or" = "And"): CamlQueryBuilder {
+        if (!fieldInfo.name) {
             throw new Error("Field name is required");
         }
-        if(!fieldInfo.type){
+        if (!fieldInfo.type) {
             throw new Error("Field type is required");
         }
-        if(!fieldInfo.comparer){
+        if (!fieldInfo.comparer) {
             fieldInfo.comparer = "Eq";
         }
-        if (this.query) {
-            this.query = `<${joinBy}>${this.query}<${fieldInfo.comparer}><FieldRef Name='${fieldInfo.name}' /><Value Type='${fieldInfo.type}'>${fieldInfo.value}</Value></${fieldInfo.comparer}></${joinBy}>`;
+
+        let newQuery = '';
+        switch (fieldInfo.comparer) {
+            case 'IsNull':
+            case 'IsNotNull':
+                newQuery = `<${fieldInfo.comparer}><FieldRef Name='${fieldInfo.name}' /></${fieldInfo.comparer}>`;
+                break;
+
+            default:
+                newQuery = `<${fieldInfo.comparer}><FieldRef Name='${fieldInfo.name
+                    }' /><Value ${fieldInfo.includeTimeValue != null
+                        ? `IncludeTimeValue='${fieldInfo.includeTimeValue ? 'TRUE' : 'FALSE'
+                        }' `
+                        : ''
+                    }Type='${fieldInfo.type}'>${fieldInfo.value}</Value></${fieldInfo.comparer
+                    }>`;
+                break;
         }
-        else{
-            this.query = `<${fieldInfo.comparer}><FieldRef Name='${fieldInfo.name}' /><Value Type='${fieldInfo.type}'>${fieldInfo.value}</Value></${fieldInfo.comparer}>`;
+
+        if (this.query) {
+            this.query = `<${joinBy}>${this.query}${newQuery}</${joinBy}>`;
+        } else {
+            this.query = newQuery;
         }
         return this;
     }

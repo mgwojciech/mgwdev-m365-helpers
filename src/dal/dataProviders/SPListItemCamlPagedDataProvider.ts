@@ -22,6 +22,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
   protected lastId: number = 0;
   protected lastRow: number = 0;
   public allItemsCount: number = 0;
+  public recursive: boolean = true;
   /**
    * Creates new instance of PagedDataProvider which will use caml query to filter data.
    * @param spHttpClient SharePoint REST API client - SPFxSPHttpClient for example.
@@ -101,7 +102,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
   public async getDataWithAPI(url: string): Promise<T[]> {
     let response = await this.spHttpClient.post(url, {
       ...requiredHttpOptions,
-      body: JSON.stringify(this.buildPostBody(`<View Scope="RecursiveAll">${this.getCamlQuery()}<RowLimit Paged='True'>${this.pageSize}</RowLimit></View>`))
+      body: JSON.stringify(this.buildPostBody(`<View${this.recursive ? ' Scope="RecursiveAll"' : ""}>${this.getCamlQuery()}<RowLimit Paged='True'>${this.pageSize}</RowLimit></View>`))
     });
     if (response.ok) {
       let data = await this.getResponse(response);

@@ -10,6 +10,6 @@ export class TokenUtils{
         if (jwtToken.exp < new Date().getTime() / 1000) {
             return false;
         }
-        return false;
+        return true;
     }
 }

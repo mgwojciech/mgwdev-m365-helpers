@@ -19,7 +19,7 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>{
      * @param selectFields Fields You want to select in the query.
      */
     constructor(protected graphClient: IHttpClient,
-        public entityTypes: ("message" | "event" | "driveItem" | "listItem" | "person")[] = ["listItem"],
+        public entityTypes: ("message" | "event" | "driveItem" | "listItem" | "person" | "chatMessage"| "externalItem")[] = ["listItem"],
         public selectFields: string[] = ["id", "title", "url"]) {
 
     }

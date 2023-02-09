@@ -31,7 +31,8 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>{
                 to: (this.currentPage + 1) * this.pageSize,
                 query: null,
                 sortProperties: null,
-                fields: null
+                fields: null,
+                size: this.pageSize
             }]
         };
         if (this.getQuery()) {

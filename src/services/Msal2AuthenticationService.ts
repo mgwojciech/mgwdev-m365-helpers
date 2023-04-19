@@ -40,7 +40,6 @@ export class Msal2AuthenticationService implements IAuthenticationService {
                 cacheLocation: "sessionStorage"
             }
         });
-        this.msalObj.handleRedirectPromise().then(this.handleResponse);
     }
 
     protected handleResponse = (resp: AuthenticationResult | null) => {

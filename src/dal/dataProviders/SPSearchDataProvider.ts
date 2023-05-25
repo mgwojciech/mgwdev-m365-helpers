@@ -44,6 +44,7 @@ export class SPSearchDataProvider<T> implements IPagedDataProvider<T>, IRefinabl
         let request = queryBuilder.build();
         request.RowLimit = this.pageSize;
         request.StartRow = this.currentPage * this.pageSize;
+        request.SortList = this.orderColumn && [{Direction: this.isDescending ? 0 : 1, Property: this.orderColumn || ""}]
         request.SelectProperties = this.selectFields;
         let requestBody = {
             request

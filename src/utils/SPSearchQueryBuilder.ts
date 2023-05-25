@@ -21,10 +21,7 @@ export class SPSearchQueryBuilder {
         if (bucketRangesCount > 0 && aggregationRequest?.bucketDefinition?.ranges) {
             let discretizedRanges = `discretize=manual`
             aggregationRequest.bucketDefinition.ranges.forEach((range, index) => {
-                let relevantRange = range.from;
-                if (index > 0) {
-                    relevantRange = range.to;
-                }
+                let relevantRange = index === 0 ? range.from + "/" + range.to  :  range.to;
                 discretizedRanges += `/${relevantRange}`;
             });
             this.refiners.push(`${aggregationRequest.field}(${discretizedRanges})`);

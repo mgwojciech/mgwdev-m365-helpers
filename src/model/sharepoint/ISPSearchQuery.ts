@@ -1,10 +1,10 @@
-export interface ISPRefinementFilters{
+export interface ISPRefinementFilters {
     results: string[];
 }
 /**
  * Represents search query payload
  */
-export interface ISPSearchQuery{
+export interface ISPSearchQuery {
     ClientType?: string;
     QueryTemplate?: string;
     Querytext: string;
@@ -13,6 +13,6 @@ export interface ISPSearchQuery{
     RowLimit?: number;
     StartRow?: number;
     SelectProperties?: string[];
-    SortList?: string[];
+    SortList?: { Direction: number, Property: string }[];
     TrimDuplicates: boolean;
 }

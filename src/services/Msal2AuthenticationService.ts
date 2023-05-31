@@ -1,6 +1,7 @@
 import { AuthenticationResult, PublicClientApplication } from '@azure/msal-browser';
 import { TokenUtils } from '../utils/TokenUtils';
 import { IAuthenticationService } from './IAuthenticationService';
+import { queueRequest } from '../utils/FunctionUtils';
 
 export interface IMsalAuthenticationConfig {
     /**
@@ -47,6 +48,13 @@ export class Msal2AuthenticationService implements IAuthenticationService {
             console.log('Authenticated', resp);
         }
     }
+
+    @queueRequest("msalLogin")
+    protected login(resource){
+        return this.msalObj.loginPopup({
+            scopes: [`${resource}/.default`]
+        });
+    }
     public async getAccessToken(resource: string): Promise<string> {
         this.token = sessionStorage.getItem(`msal.${this.config.clientId}.${resource}.idtoken`) || "";
         if (this.token && TokenUtils.isTokenValid(this.token)) {
@@ -59,9 +67,7 @@ export class Msal2AuthenticationService implements IAuthenticationService {
             });
         }
         catch (err) {
-            authResult = await this.msalObj.loginPopup({
-                scopes: [`${resource}/.default`]
-            })
+            authResult = await this.login(resource);
         }
         this.token = authResult?.accessToken || "";
         sessionStorage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, this.token);

@@ -102,7 +102,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
   public async getDataWithAPI(url: string): Promise<T[]> {
     let response = await this.spHttpClient.post(url, {
       ...requiredHttpOptions,
-      body: JSON.stringify(this.buildPostBody(`<View${this.recursive ? ' Scope="RecursiveAll"' : ""}>${this.getCamlQuery()}<RowLimit Paged='True'>${this.pageSize}</RowLimit></View>`))
+      body: JSON.stringify(this.buildPostBody(`<View${this.recursive ? ' Scope="RecursiveAll"' : ""}>${this.getCamlQuery()}<RowLimit>${this.pageSize}</RowLimit></View>`))
     });
     if (response.ok) {
       let data = await this.getResponse(response);

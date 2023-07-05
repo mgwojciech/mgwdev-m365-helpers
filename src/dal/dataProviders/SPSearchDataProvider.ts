@@ -61,7 +61,14 @@ export class SPSearchDataProvider<T> implements IPagedDataProvider<T>, IRefinabl
     }
 
     protected parseResponse(response: any): IDataProviderRefinableResult<T> {
-        let hitContainer = response.PrimaryQueryResult.RelevantResults;
+        let hitContainer = response?.PrimaryQueryResult?.RelevantResults;
+        if(!hitContainer) {
+            return {
+                data: [],
+                itemsCount: 0,
+                aggregations: []
+            }
+        }
         this.allItemsCount = hitContainer.TotalRows;
         let data: T[] = [];
         if (this.allItemsCount > 0) {

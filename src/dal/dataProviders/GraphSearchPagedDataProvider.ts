@@ -72,7 +72,11 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>{
                 return hitContainer.hits.map(hit => ({
                     ...hit.resource,
                     type: hit.resource["@odata.type"],
-                    hitResourceIdId: hit.resource.id
+                    hitResourceIdId: hit.resource.id,
+                    hitId: hit.hitId,
+                    hitRank: hit.rank,
+                    hitHighlights: hit.highlights,
+                    hitSummary: hit.summary
                 }));
             }
             return [];

@@ -81,6 +81,7 @@ export class SPBatchHandler {
             headers: {
                 Accept: "application/json",
                 ConsistencyLevel: "eventual",
+                "OData-Version": "4.0",
                 "content-type": `multipart/mixed; boundary=${this.batchSeparator}`
             }, body: batchBody
         };

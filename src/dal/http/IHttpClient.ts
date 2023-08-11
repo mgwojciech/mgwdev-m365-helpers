@@ -13,5 +13,5 @@ export interface IHttpClient {
     post(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
     patch(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
     put(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
-    delete(url: string): Promise<IHttpClientResponse>;
+    delete(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
 }

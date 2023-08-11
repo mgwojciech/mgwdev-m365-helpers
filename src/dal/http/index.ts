@@ -6,3 +6,4 @@ export * from "./SPFxGraphHttpClient";
 export * from "./SPFxSPHttpClient";
 export * from "./BatchSPClient";
 export * from "./SandboxProxyGraphClient";
+export * from "./MockFileHttpClient";

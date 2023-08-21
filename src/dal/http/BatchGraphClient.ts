@@ -10,6 +10,12 @@ import { IBatch } from "../../model/IBatch";
  */
 export class BatchGraphClient implements IHttpClient {
     private batch: IBatch[] = [];
+    public getRequestId = (url: string, method: string) => {
+        if(method === "GET"){
+            return encodeURIComponent(url);
+        }
+        return Math.random().toString(36).substring(7);
+    }
     private registeredPromises: Map<string, { resolve, error }[]> = new Map<string, { resolve, error }[]>();
     /**
      * Initializes new instance of BatchGraphClient.
@@ -21,11 +27,13 @@ export class BatchGraphClient implements IHttpClient {
     }
     public get(url: string, options?): Promise<IHttpClientResponse> {
         return new Promise<IHttpClientResponse>((resolve, error) => {
-            this.createGetBatchRequest(url, { resolve, error });
+            this.createGetBatchRequest(url, "GET", options, { resolve, error });
         });
     }
     public post(url: string, options?): Promise<IHttpClientResponse> {
-        return this.baseClient.post(url, options);
+        return new Promise<IHttpClientResponse>((resolve, error) => {
+            this.createGetBatchRequest(url, "POST", options, { resolve, error });
+        });
     }
     public patch(url: string, options?): Promise<IHttpClientResponse> {
         return this.baseClient.patch(url, options);
@@ -50,11 +58,14 @@ export class BatchGraphClient implements IHttpClient {
             await batchHandler.executeBatch();
         }
     }
-    public createGetBatchRequest = (url: string, requestPromise: { resolve, error }) => {
+    public createGetBatchRequest = (url: string, 
+        method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+        options: any,
+        requestPromise: { resolve, error }) => {
         if (this.batch.length === 0) {
             setTimeout(this.generateBatch, this.batchWaitTime);
         }
-        let promiseId = encodeURIComponent(url);
+        let promiseId = this.getRequestId(url, method);
         let apiUrl = new URL(url, "https://graph.microsoft.com");
         let relativeUrl = apiUrl.pathname + apiUrl.search;
         if (this.batch.filter(req => req.id === promiseId)[0]) {
@@ -64,9 +75,11 @@ export class BatchGraphClient implements IHttpClient {
             this.batch.push({
                 url: relativeUrl,
                 id: promiseId,
-                method: "GET",
+                method: method,
+                body: options && options.body ? JSON.parse(options.body) : null,
                 headers:{
-                    "ConsistencyLevel":"eventual"
+                    "ConsistencyLevel":"eventual",
+                    ...options ? options.headers : {}
                 }
             });
             this.registeredPromises.set(promiseId, [requestPromise]);

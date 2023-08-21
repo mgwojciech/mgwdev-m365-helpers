@@ -8,7 +8,11 @@ export class BatchHandler {
     public async executeBatch() {
         let betaRequests = this.batch.filter(req => req.url.indexOf("v1.0/") < 0);
         let v1Requests = this.batch.filter(req => req.url.indexOf("v1.0/") >= 0);
-        let batchBody = JSON.stringify({ requests: betaRequests });
+        let batchBody = JSON.stringify({ 
+            requests: betaRequests.map(req =>({
+                ...req,
+                url: req.url.replace("beta/", "")
+            })), });
         let batchBodyV1 = JSON.stringify({
             requests: v1Requests.map(req => ({
                 ...req,

@@ -30,13 +30,49 @@ export class SPBatchHandler {
                     body += `${prop}: ${batch.headers[prop]}\n`;
                 }
             }
-            if(batch.body){
+            if (batch.body) {
+                const encoder = new TextEncoder();
+                const payloadBytes = encoder.encode(batch.body);
+
+                // Calculate the length of the payload in bytes
+                const contentLength = payloadBytes.length;
+                body += `Content-Length: ${contentLength}\n`;
+                body += `\n`;
                 body += `${batch.body}`;
             }
             body += `\n\n\n`;
         });
         body += `--${this.batchSeparator}--`;
         return body
+    }
+    private extractJSONFromBody(inputText): string {
+        // Find the starting position of the JSON data
+        const start = inputText.indexOf('{');
+
+        if (start !== -1) {
+            // Extract the JSON data
+            const jsonSection: string = inputText.substring(start);
+            const jsonEnd = jsonSection.lastIndexOf('}') + 1;
+
+            if (jsonEnd !== -1) {
+                const jsonData = jsonSection.substring(0, jsonEnd);
+
+                try {
+                    // Parse the JSON data
+                    JSON.parse(jsonData);
+                    return jsonData;
+                } catch (error) {
+                    console.error('Error parsing JSON:', error);
+                    return null;
+                }
+            } else {
+                console.error('End of JSON data not found in the input text.');
+                return null;
+            }
+        } else {
+            console.error('JSON data not found in the input text.');
+            return null;
+        }
     }
 
     private processBatchResponse(responses) {
@@ -45,7 +81,7 @@ export class SPBatchHandler {
 
         this.registeredPromises.forEach((promise: { resolve; error; }, id: string) => {
             let promiseResponseText = responses[id];
-            let promiseResponse = promiseResponseText.split("\n");
+            let promiseResponse = this.extractJSONFromBody(promiseResponseText);
             this.handleSingleResponse(promiseResponse, promise);
         });
 
@@ -59,11 +95,11 @@ export class SPBatchHandler {
     }
 
     private handleSingleResponse(promiseResponse: any, promise: { resolve: any; error: any; }) {
-        let responseValue = promiseResponse[promiseResponse.length - 2];
+        let responseValue = promiseResponse;
         if (promiseResponse) {
             promise.resolve({
                 json: () => Promise.resolve(JSON.parse(responseValue)),
-                ok: promiseResponse.status === 200,
+                ok: true,
                 text: () => Promise.resolve(responseValue)
             });
         }
@@ -80,7 +116,6 @@ export class SPBatchHandler {
         const options = {
             headers: {
                 Accept: "application/json",
-                ConsistencyLevel: "eventual",
                 "OData-Version": "4.0",
                 "content-type": `multipart/mixed; boundary=${this.batchSeparator}`
             }, body: batchBody

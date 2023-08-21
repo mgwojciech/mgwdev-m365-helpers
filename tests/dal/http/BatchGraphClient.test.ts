@@ -729,7 +729,7 @@ describe("BatchGraphClient", () => {
                     }
                 ],
             })
-        }));
+        } as any));
         jest.spyOn(baseClient, "post").mockReturnValueOnce(Promise.resolve({
             ok: true,
             json: () => Promise.resolve({
@@ -752,7 +752,7 @@ describe("BatchGraphClient", () => {
                     }
                 ],
             })
-        }));
+        } as any));
         let batchClient = new BatchGraphClient(baseClient as any);
         batchClient.batchSplitThreshold = 2;
         let mePromise = batchClient.get("/me");
@@ -811,13 +811,11 @@ describe("BatchGraphClient", () => {
             },
         }
         let batchClient = new BatchGraphClient(baseClient as any);
-        let postSpy = jest.spyOn(baseClient, "post");
         let patchSpy = jest.spyOn(baseClient, "patch");
         let putSpy = jest.spyOn(baseClient, "put");
         let deleteSpy = jest.spyOn(baseClient, "delete");
 
-        await Promise.all([batchClient.post(""), batchClient.patch(""), batchClient.put(""), batchClient.delete("")]);
-        expect(postSpy).toBeCalledTimes(1);
+        await Promise.all([batchClient.patch(""), batchClient.put(""), batchClient.delete("")]);
         expect(patchSpy).toBeCalledTimes(1);
         expect(putSpy).toBeCalledTimes(1);
         expect(deleteSpy).toBeCalledTimes(1);

@@ -39,4 +39,98 @@ Content-Transfer-Encoding: binary
 		assert.equal(web.Title, "Communication site");
 		assert.equal(site.HubSiteId, "9752c22c-7048-4936-b112-b4b8e4c830f1");
 	});
+	test("should batch get with post", async () => {
+		let baseClient = {
+			post: (url: string, options: any) => Promise.resolve({
+				ok: true,
+				text: () => Promise.resolve(`
+				--batchresponse_03f88790-978e-4a15-a3d2-14c69deaf306
+Content-Type: application/http
+Content-Transfer-Encoding: binary
+
+HTTP/1.1 200 OK
+CONTENT-TYPE: application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8
+
+{"@odata.context":"https://mwdevsb.sharepoint.com/_api/$metadata#web","@odata.type":"#SP.Web","@odata.id":"https://mwdevsb.sharepoint.com/_api/Web","@odata.editLink":"Web","AllowRssFeeds":true,"AlternateCssUrl":"","AppInstanceId":"00000000-0000-0000-0000-000000000000","ClassicWelcomePage":null,"Configuration":0,"Created":"2023-08-14T09:47:06.867-07:00","CurrentChangeToken":{"StringValue":"1;2;21981dda-131a-4bfe-9e19-55ab749312da;638282173316430000;748198141"},"CustomMasterUrl":"/_catalogs/masterpage/seattle.master","Description":"","DesignPackageId":"00000000-0000-0000-0000-000000000000","DocumentLibraryCalloutOfficeWebAppPreviewersDisabled":false,"EnableMinimalDownload":false,"FooterEmphasis":0,"FooterEnabled":true,"FooterLayout":0,"HeaderEmphasis":0,"HeaderLayout":2,"HideTitleInHeader":false,"HorizontalQuickLaunch":true,"Id":"21981dda-131a-4bfe-9e19-55ab749312da","IsEduClass":false,"IsEduClassProvisionChecked":false,"IsEduClassProvisionPending":false,"IsHomepageModernized":false,"IsMultilingual":true,"IsRevertHomepageLinkHidden":false,"Language":1033,"LastItemModifiedDate":"2023-08-17T13:09:52Z","LastItemUserModifiedDate":"2023-08-17T07:48:44Z","LogoAlignment":0,"MasterUrl":"/_catalogs/masterpage/seattle.master","MegaMenuEnabled":true,"NavAudienceTargetingEnabled":false,"NoCrawl":false,"ObjectCacheEnabled":false,"OverwriteTranslationsOnChange":true,"ResourcePath":{"DecodedUrl":"https://mwdevsb.sharepoint.com"},"QuickLaunchEnabled":true,"RecycleBinEnabled":true,"SearchScope":0,"ServerRelativeUrl":"/","SiteLogoUrl":"https://mwdevsb.sharepoint.com/SiteAssets/__sitelogo____sitelogo__thelandings-v3@2x.png","SyndicationEnabled":true,"TenantAdminMembersCanShare":0,"Title":"Intranet","TreeViewEnabled":false,"UIVersion":15,"UIVersionConfigurationEnabled":false,"Url":"https://mwdevsb.sharepoint.com","WebTemplate":"SITEPAGEPUBLISHING","WelcomePage":"SitePages/Home.aspx"}
+--batchresponse_03f88790-978e-4a15-a3d2-14c69deaf306
+Content-Type: application/http
+Content-Transfer-Encoding: binary
+
+HTTP/1.1 200 OK
+CONTENT-TYPE: application/json; charset=utf-8
+
+{ "Row" : 
+[{
+"Title": "New benefits available",
+"_ExtendedDescription": "New benefits are available. Visit benefits page to get more info.",
+"StartDate": "",
+"StartDate.": "",
+"TaxKeyword": [{"Label":"Benefits","TermID":"00323b85-614a-48b7-b546-0846e6c35750"}],
+"TaxKeyword.": "9;#Benefits",
+"Priority": "(3) Low"
+}
+],"FirstRow" : 1,
+"FolderPermissions" : "0x7ffffffffffbffff"
+,"LastRow" : 1,
+"RowLimit" : 25
+,"FilterLink" : "?"
+,"ForceNoHierarchy" : "1"
+,"HierarchyHasIndention" : ""
+,"CurrentFolderSpItemUrl" : ""
+
+}
+--batchresponse_03f88790-978e-4a15-a3d2-14c69deaf306
+Content-Type: application/http
+Content-Transfer-Encoding: binary
+
+HTTP/1.1 200 OK
+CONTENT-TYPE: application/json; charset=utf-8
+
+{ "Row" : 
+[{
+"ID": "2"
+}
+],"FirstRow" : 1,
+"FolderPermissions" : "0x7ffffffffffbffff"
+,"LastRow" : 1,
+"RowLimit" : 30
+,"FilterLink" : "?"
+,"ForceNoHierarchy" : "1"
+,"HierarchyHasIndention" : ""
+,"CurrentFolderSpItemUrl" : ""
+
+}
+--batchresponse_03f88790-978e-4a15-a3d2-14c69deaf306--
+`),
+				headers: {
+					get: () => `multipart/mixed; boundary=batchresponse_03f88790-978e-4a15-a3d2-14c69deaf306`
+				}
+			}),
+		}
+		let batchClient = new BatchSPClient(baseClient as any, "https://test.sharepoint.com", 50);
+		let [web, listItems, listItemsIds] = await Promise.all([
+			batchClient.get("/_api/web").then(r => r.json()),
+			batchClient.post("/_api/web/lists/getbytitle('Announcements')/RenderListDataAsStream", {
+				body: JSON.stringify({
+					"parameters": {
+						"RenderOptions": 2,
+						"AllowMultipleValueFilterForTaxonomyFields": true,
+						"AddRequiredFields": true
+					}
+				})
+			}).then(r => r.json()),
+			batchClient.post("/_api/web/lists/getbytitle('Announcements')/RenderListDataAsStream", {
+				body: JSON.stringify({
+					"parameters": {
+						"RenderOptions": 2,
+						"AllowMultipleValueFilterForTaxonomyFields": true,
+						"AddRequiredFields": true
+					}
+				})
+			}).then(r => r.json())]);
+
+		expect(web.Title).toBe("Intranet");
+		expect(listItems.Row.length).toBe(1);
+		expect(listItemsIds.Row.length).toBe(1);
+	});
 });

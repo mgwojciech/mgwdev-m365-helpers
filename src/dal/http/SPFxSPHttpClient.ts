@@ -12,7 +12,6 @@ export class SPFxSPHttpClient implements IHttpClient {
                 ...options?.headers,
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "odata-version": "3.0"
             }
         });
     }
@@ -26,7 +25,6 @@ export class SPFxSPHttpClient implements IHttpClient {
                 ...options?.headers,
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "odata-version": "3.0"
             },
             method: "PATCH"
         });
@@ -38,7 +36,6 @@ export class SPFxSPHttpClient implements IHttpClient {
                 ...options?.headers,
                 Accept: "application/json",
                 "Content-Type": "application/json",
-                "odata-version": "3.0"
             },
             method: "PUT"
         });

@@ -3,8 +3,7 @@ import { IHttpClient } from "../http/IHttpClient";
 const requiredHttpOptions = {
   headers: {
     'content-type': 'application/json;odata=nometadata',
-    accept: 'application/json;odata=nometadata',
-    'odata-version': '3.0',
+    accept: 'application/json;odata=nometadata'
   },
 };
 /**

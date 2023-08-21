@@ -28,6 +28,10 @@ export class BatchSPClient implements IHttpClient {
         return promise;
     }
     public post(url: string, options?): Promise<IHttpClientResponse> {
+        if(url?.toLowerCase().indexOf("/_api/search/postquery") > -1){
+            //post query doesn't support batching :(
+            return this.baseClient.post(url, options);
+        }
         let promiseId = this.promiseIdGenerator.getNextId();
         let promise = new Promise<IHttpClientResponse>((resolve, error) => {
             if (this.batch.length === 0) {

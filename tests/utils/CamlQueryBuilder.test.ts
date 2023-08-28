@@ -80,5 +80,37 @@ describe("CamlQueryBuilder", () => {
 			comparer: ""
 		}).build();
 		expect(query).toBe("<Eq><FieldRef Name='Test' /><Value Type='Text'>Test 2</Value></Eq>")
-	})
+	});
+	test("should build query with Membership Comparer", ()=>{
+		let camlQueryBuilder = new CamlQueryBuilder();
+		let query = camlQueryBuilder.withFieldQuery({
+			name: "CustomAudience",
+			value: "",
+			type: "Membership",
+			comparer: "CurrentUserGroups"
+		}).build();
+
+		expect(query.replace(/\s+/g, ' ').trim()).toBe(`<Or>
+        <Membership Type="CurrentUserGroups">
+          <FieldRef Name="CustomAudience"/>
+        </Membership>
+        <Eq>
+          <FieldRef Name="CustomAudience"></FieldRef>
+          <Value Type="Integer">
+            <UserID/>
+          </Value>
+        </Eq>
+        </Or>`.replace(/\s+/g, ' ').trim());
+	});
+	test("should build query with IDEq Comparer", ()=>{
+		const camlQueryBuilder = new CamlQueryBuilder();
+		const query = camlQueryBuilder.withFieldQuery({
+			name: "CustomAudience",
+			value: "1",
+			type: "Lookup",
+			comparer: "IDEq"
+		}).build();
+
+		expect(query.replace(/\s+/g, ' ').trim()).toBe(`<Eq><FieldRef Name='CustomAudience' LookupId='True' /><Value Type='Lookup'>1</Value></Eq>`.replace(/\s+/g, ' ').trim());
+	});
 });

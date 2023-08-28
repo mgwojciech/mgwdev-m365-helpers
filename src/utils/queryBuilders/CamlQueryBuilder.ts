@@ -29,7 +29,23 @@ export class CamlQueryBuilder implements IQueryBuilder {
             case 'IsNotNull':
                 newQuery = `<${fieldInfo.comparer}><FieldRef Name='${fieldInfo.name}' /></${fieldInfo.comparer}>`;
                 break;
-
+            case 'CurrentUserGroups':
+                newQuery = `<Or>
+                <Membership Type="CurrentUserGroups">
+                <FieldRef Name="${fieldInfo.name}"/>
+              </Membership>
+              <Eq>
+                <FieldRef Name="${fieldInfo.name}"></FieldRef>
+                <Value Type="Integer">
+                  <UserID/>
+                </Value>
+              </Eq>
+              </Or>`;
+                break;
+            case 'IDEq':
+                newQuery = `<Eq><FieldRef Name='${fieldInfo.name
+                    }' LookupId='True' /><Value Type='${fieldInfo.type}'>${fieldInfo.value}</Value></Eq>`;
+                break;
             default:
                 newQuery = `<${fieldInfo.comparer}><FieldRef Name='${fieldInfo.name
                     }' /><Value ${fieldInfo.includeTimeValue != null

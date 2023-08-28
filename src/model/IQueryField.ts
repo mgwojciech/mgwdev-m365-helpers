@@ -4,7 +4,9 @@ export type IQueryFieldType =
   | 'DateTime'
   | 'Guid'
   | 'MultiChoice'
-  | 'Lookup';
+  | 'Lookup'
+  | 'Membership'
+  | 'User';
 
 export interface IQueryField {
     name: string,
@@ -14,6 +16,7 @@ export interface IQueryField {
     | 'Contains'
     | 'DateRangesOverlap'
     | 'Eq'
+    | 'IDEq'
     | 'Geq'
     | 'Gt'
     | 'Includes'
@@ -23,6 +26,7 @@ export interface IQueryField {
     | 'Lt'
     | 'Neq'
     | 'NotIncludes'
-    | 'Values';
+    | 'Values'
+    | 'CurrentUserGroups';
   includeTimeValue?: boolean;
 }

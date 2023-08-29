@@ -12,6 +12,10 @@ export class BatchSPClient implements IHttpClient {
 
     }
     public async get(url: string, options?: RequestInit): Promise<IHttpClientResponse> {
+        if(url?.toLowerCase().indexOf("/_api/v2.1") > -1){
+            //v2.1 doesn't support batching :(
+            return this.baseClient.get(url, options);
+        }
         let promiseId = this.promiseIdGenerator.getNextId();
         let promise = new Promise<IHttpClientResponse>((resolve, error) => {
             if (this.batch.length === 0) {
@@ -28,7 +32,7 @@ export class BatchSPClient implements IHttpClient {
         return promise;
     }
     public post(url: string, options?): Promise<IHttpClientResponse> {
-        if(url?.toLowerCase().indexOf("/_api/search/postquery") > -1){
+        if(url?.toLowerCase().indexOf("/_api/search/postquery") > -1 || url?.toLowerCase().indexOf("/_api/v2.1") > -1){
             //post query doesn't support batching :(
             return this.baseClient.post(url, options);
         }

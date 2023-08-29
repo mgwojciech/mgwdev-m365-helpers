@@ -55,4 +55,17 @@ describe("ImageHelper", () => {
         const result = await ImageHelper.getThumbnailImageFromPreviewUrlWithGraph(mockHttpClient, "https://somedomain.com/getpreview.ashx?guidSite=123&guidWeb=456&guidFile=789");
         expect(result).toBe("data:image/jpeg;base64,AAAAAAAAAAA=");
     });
+    test("getThumbnailImageFromPreviewUrlWithGraph should build correct url", async () => {
+        mockHttpClient.get = jest.fn().mockImplementation(() => {
+            return Promise.resolve({
+                status: 200,
+                headers: {
+                    "content-type": "image/jpeg"
+                },
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(8))
+            });
+        });
+        const result = await ImageHelper.getThumbnailImageFromPreviewUrlWithGraph(mockHttpClient, "https://somedomain.com/getpreview.ashx?guidSite=123&guidWeb=456&guidFile=789");
+        expect(mockHttpClient.get).toBeCalledWith("https://graph.microsoft.com/beta/sites/123/sites/456/items/789/microsoft.graph.listitem/driveItem/thumbnails/0/medium/content");
+    });
 });

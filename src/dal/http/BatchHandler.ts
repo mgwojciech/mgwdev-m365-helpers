@@ -68,6 +68,7 @@ export class BatchHandler {
                 promise.resolve({
                     json: () => Promise.resolve(promiseResponse.body),
                     ok: promiseResponse.status === 200,
+                    status: promiseResponse.status,
                     text: () => Promise.resolve(JSON.stringify(promiseResponse.body)),
                     headers: promiseResponse.headers
                 });

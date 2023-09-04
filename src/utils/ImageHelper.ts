@@ -27,7 +27,12 @@ export class ImageHelper {
         const guidSite = url.searchParams.get("guidSite");
         const guidWeb = url.searchParams.get("guidWeb");
         const guidFile = url.searchParams.get("guidFile");
-        const graphApiUrl = `https://graph.microsoft.com/beta/sites/${guidSite}/sites/${guidWeb}/items/${guidFile}/microsoft.graph.listitem/driveItem/thumbnails/0/${size}/content`;
+
+        return ImageHelper.getThumbnailImageFromMetadata(graphClient, guidSite, guidWeb, guidFile, size);
+    }
+
+    public static async getThumbnailImageFromMetadata(graphClient: IHttpClient, siteId: string, webId: string, fileId: string, size: "small" | "medium" | "large" = "medium"){
+        const graphApiUrl = `https://graph.microsoft.com/beta/sites/${siteId}/sites/${webId}/items/${fileId}/microsoft.graph.listitem/driveItem/thumbnails/0/${size}/content`;
         const response = await graphClient.get(graphApiUrl);
         if (response.headers["content-type"] === "application/json") {
             const binaryData = await response.text()

@@ -43,7 +43,6 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>, I
                 to: (this.currentPage + 1) * this.pageSize,
                 query: null,
                 sortProperties: null,
-                queryTemplate: this.queryTemplate,
                 fields: null,
                 aggregations: this.requestedRefiners,
                 aggregationFilters: this.filters?.map(filter => `${filter.field}:${filter.filterValue}`) || undefined,
@@ -52,12 +51,18 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>, I
         };
         if (this.getQuery()) {
             requestBody.requests[0].query = {
-                queryString: this.getQuery()
+                queryString: this.getQuery(),
+            }
+            if(this.queryTemplate){
+                requestBody.requests[0].query.queryTemplate = this.queryTemplate;
             }
         }
         else {
             requestBody.requests[0].query = {
                 queryString: "*"
+            }
+            if(this.queryTemplate){
+                requestBody.requests[0].query.queryTemplate = this.queryTemplate;
             }
         }
         if (this.orderColumn) {

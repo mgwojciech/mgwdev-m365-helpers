@@ -2,35 +2,37 @@
 import { GraphSearchPagedDataProvider } from "../../../src/dal/dataProviders/GraphSearchPagedDataProvider";
 
 describe("GraphSearchPagedDataProvider", () => {
+    const response = {
+        value: [
+            {
+                hitsContainers: [
+                    {
+                        hits: [
+                            {
+                                hitId: "1",
+                                rank: 1,
+                                summary: "",
+                                resource: {
+                                    fields: [{
+                                        id: "test-id-1",
+                                        title: "Test 1"
+                                    }]
+                                }
+                            }
+                        ],
+                        total: 133,
+                        moreResultsAvailable: true
+                    }
+                ]
+            }
+        ]
+    };
+
     test("should call correct query", async () => {
         let mockGraphClient = {
             post: () => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({
-                    value: [
-                        {
-                            hitsContainers: [
-                                {
-                                    hits: [
-                                        {
-                                            hitId: "1",
-                                            rank: 1,
-                                            summary: "",
-                                            resource: {
-                                                fields: [{
-                                                    id: "test-id-1",
-                                                    title: "Test 1"
-                                                }]
-                                            }
-                                        }
-                                    ],
-                                    total: 133,
-                                    moreResultsAvailable: true
-                                }
-                            ]
-                        }
-                    ]
-                })
+                json: () => Promise.resolve(response)
             })
         };
         let postSpy = jest.spyOn(mockGraphClient, "post");
@@ -56,31 +58,7 @@ describe("GraphSearchPagedDataProvider", () => {
         let mockGraphClient = {
             post: () => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({
-                    value: [
-                        {
-                            hitsContainers: [
-                                {
-                                    hits: [
-                                        {
-                                            hitId: "1",
-                                            rank: 1,
-                                            summary: "",
-                                            resource: {
-                                                fields: [{
-                                                    id: "test-id-1",
-                                                    title: "Test 1"
-                                                }]
-                                            }
-                                        }
-                                    ],
-                                    total: 133,
-                                    moreResultsAvailable: true
-                                }
-                            ]
-                        }
-                    ]
-                })
+                json: () => Promise.resolve(response)
             })
         };
         let postSpy = jest.spyOn(mockGraphClient, "post");
@@ -101,48 +79,25 @@ describe("GraphSearchPagedDataProvider", () => {
             isDescending: false
         });
     });
-    test("should throw http exception", async ()=>{
+    test("should throw http exception", async () => {
         let mockGraphClient = {
             post: () => Promise.resolve({
                 ok: true,
             })
         };
         let dataProvider = new GraphSearchPagedDataProvider<any>(mockGraphClient as any);
-		jest.spyOn(mockGraphClient, "post").mockImplementation(() => {
-			return Promise.resolve({ ok: false, text: () => Promise.resolve("Some exception") });
-		});
+        jest.spyOn(mockGraphClient, "post").mockImplementation(() => {
+            return Promise.resolve({ ok: false, text: () => Promise.resolve("Some exception") });
+        });
 
-		await expect(dataProvider.getData()).rejects.toThrow("Some exception");
+        await expect(dataProvider.getData()).rejects.toThrow("Some exception");
     });
     test("should call with correct query during pagination", async () => {
+
         let mockGraphClient = {
             post: () => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve({
-                    value: [
-                        {
-                            hitsContainers: [
-                                {
-                                    hits: [
-                                        {
-                                            hitId: "1",
-                                            rank: 1,
-                                            summary: "",
-                                            resource: {
-                                                fields: [{
-                                                    id: "test-id-1",
-                                                    title: "Test 1"
-                                                }]
-                                            }
-                                        }
-                                    ],
-                                    total: 133,
-                                    moreResultsAvailable: true
-                                }
-                            ]
-                        }
-                    ]
-                })
+                json: () => Promise.resolve(response)
             })
         };
         let postSpy = jest.spyOn(mockGraphClient, "post");
@@ -172,12 +127,31 @@ describe("GraphSearchPagedDataProvider", () => {
         expect(callBody.requests[0].from).toBe(125);
         expect(callBody.requests[0].to).toBe(150);
         expect(dataProvider.isNextPageAvailable()).toBeFalsy();
-        
+
         let lastPage = await dataProvider.getNextPage();
         expect(lastPage).toMatchObject([]);
 
         await dataProvider.jumpToAPage(0);
         let minusOnePage = await dataProvider.getPreviousPage();
         expect(minusOnePage).toMatchObject([]);
+    });
+    test("should append queryText to query", async () => {
+        let mockGraphClient = {
+            post: () => Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve(response)
+            })
+        };
+        let postSpy = jest.spyOn(mockGraphClient, "post");
+        let dataProvider = new GraphSearchPagedDataProvider<any>(mockGraphClient as any);
+        dataProvider.setQuery("test");
+        dataProvider.queryTemplate = "({searchTerms}) AND Test 1";
+
+        await dataProvider.getData();
+        //@ts-ignore
+        let callOptions: any = postSpy.mock.calls[0][1];
+        let callBody = JSON.parse(callOptions.body);
+        expect(callBody.requests[0].query.queryString).toBe("test");
+        expect(callBody.requests[0].query.queryTemplate).toBe("({searchTerms}) AND Test 1");
     });
 });

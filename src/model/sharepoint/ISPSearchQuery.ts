@@ -15,4 +15,5 @@ export interface ISPSearchQuery {
     SelectProperties?: string[];
     SortList?: { Direction: number, Property: string }[];
     TrimDuplicates: boolean;
+    Culture?: number;
 }

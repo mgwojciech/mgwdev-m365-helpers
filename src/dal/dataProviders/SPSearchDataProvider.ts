@@ -13,6 +13,7 @@ export class SPSearchDataProvider<T> implements IPagedDataProvider<T>, IRefinabl
     public allItemsCount: number = -1;
     protected aggregations?: IAggregationRequest[];
     protected filters?: IFilterRequest[];
+    public cultureId: number = 1033;
     constructor(protected searchApiUrl: string, protected httpClient: IHttpClient,
         public selectFields: string[],
         public serviceQuery: string) {
@@ -46,6 +47,7 @@ export class SPSearchDataProvider<T> implements IPagedDataProvider<T>, IRefinabl
         request.StartRow = this.currentPage * this.pageSize;
         request.SortList = this.orderColumn && [{Direction: this.isDescending ? 0 : 1, Property: this.orderColumn || ""}]
         request.SelectProperties = this.selectFields;
+        request.Culture = this.cultureId;
         let requestBody = {
             request
         }

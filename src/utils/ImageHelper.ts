@@ -1,4 +1,5 @@
 import { IHttpClient } from "../dal/http/IHttpClient";
+import { DriveItemUtils } from "./DriveItemUtils";
 
 export class ImageHelper {
     public static async getFeatureImage(featureImage: {
@@ -24,15 +25,27 @@ export class ImageHelper {
         if (!previewUrl) return null;
         if (previewUrl.indexOf("getpreview.ashx") < 0) return previewUrl;
         const url = new URL(previewUrl);
+        if (previewUrl.indexOf("?path=") >= 0) {
+            const path = url.searchParams.get("path");
+            const absolutePath = url.origin + path;
+            const shareUrl = DriveItemUtils.getFileSharesApiUri(absolutePath);
+            const graphApiUrl = `${shareUrl}/thumbnails/0/${size}/content`;
+            return ImageHelper.getThumbnailImageFromGraph(graphClient, graphApiUrl);
+        }
         const guidSite = url.searchParams.get("guidSite");
         const guidWeb = url.searchParams.get("guidWeb");
         const guidFile = url.searchParams.get("guidFile");
 
+
         return ImageHelper.getThumbnailImageFromMetadata(graphClient, guidSite, guidWeb, guidFile, size);
     }
 
-    public static async getThumbnailImageFromMetadata(graphClient: IHttpClient, siteId: string, webId: string, fileId: string, size: "small" | "medium" | "large" = "medium"){
+    public static async getThumbnailImageFromMetadata(graphClient: IHttpClient, siteId: string, webId: string, fileId: string, size: "small" | "medium" | "large" = "medium") {
         const graphApiUrl = `https://graph.microsoft.com/beta/sites/${siteId}/sites/${webId}/items/${fileId}/microsoft.graph.listitem/driveItem/thumbnails/0/${size}/content`;
+        return ImageHelper.getThumbnailImageFromGraph(graphClient, graphApiUrl);
+    }
+
+    protected static async getThumbnailImageFromGraph(graphClient: IHttpClient, graphApiUrl: string) {
         const response = await graphClient.get(graphApiUrl);
         if (response.headers["content-type"] === "application/json") {
             const binaryData = await response.text()

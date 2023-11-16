@@ -68,4 +68,17 @@ describe("ImageHelper", () => {
         const result = await ImageHelper.getThumbnailImageFromPreviewUrlWithGraph(mockHttpClient, "https://somedomain.com/getpreview.ashx?guidSite=123&guidWeb=456&guidFile=789");
         expect(mockHttpClient.get).toBeCalledWith("https://graph.microsoft.com/beta/sites/123/sites/456/items/789/microsoft.graph.listitem/driveItem/thumbnails/0/medium/content");
     });
+    test("getThumbnailImageFromPreviewUrlWithGraph should build correct url if preview is path based", async () => {
+        mockHttpClient.get = jest.fn().mockImplementation(() => {
+            return Promise.resolve({
+                status: 200,
+                headers: {
+                    "content-type": "image/jpeg"
+                },
+                arrayBuffer: () => Promise.resolve(new ArrayBuffer(8))
+            });
+        });
+        const result = await ImageHelper.getThumbnailImageFromPreviewUrlWithGraph(mockHttpClient, "https://somedomain.com/getpreview.ashx?path=/sites/site1/Shared%20Documents/Document.docx");
+        expect(mockHttpClient.get).toBeCalledWith("/v1.0/shares/u!aHR0cHM6Ly9zb21lZG9tYWluLmNvbS9zaXRlcy9zaXRlMS9TaGFyZWQlMjBEb2N1bWVudHMvRG9jdW1lbnQuZG9jeA==/driveItem/thumbnails/0/medium/content");
+    });
 });

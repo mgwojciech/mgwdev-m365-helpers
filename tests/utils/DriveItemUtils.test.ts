@@ -8,6 +8,14 @@ describe("DriveItemUtils", () => {
         const actualApiUrl = DriveItemUtils.getFileSharesApiUri(fileAbsoluteUrl);
         expect(actualApiUrl).toBe(expectedApiUrl);
     });
+    test("should get file shares api uri from preview url", () => {
+        const previewUrl = new URL("https://somedomain.com/getpreview.ashx?path=/sites/site1/Shared%20Documents/Document.docx");
+        const path = previewUrl.searchParams.get("path");
+            const absolutePath = previewUrl.origin + path;
+            const shareUrl = DriveItemUtils.getFileSharesApiUri(absolutePath);
+        const expected = DriveItemUtils.getFileSharesApiUri("https://somedomain.com/sites/site1/Shared%20Documents/Document.docx");
+        expect(shareUrl).toBe(expected);
+    });
     test("should throw exception if fileAbsoluteUrl is not provided", () => {
         expect(() => {
             DriveItemUtils.getFileSharesApiUri("");

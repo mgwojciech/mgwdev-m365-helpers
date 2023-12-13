@@ -59,9 +59,9 @@ export class Msal2AuthenticationService implements IAuthenticationService {
             }
         }
     }
-    @queueRequest("msalLogin")
+    @queueRequest("msalLogin-{0}")
     protected login(resource: string) {
-        let scopes: string[] = [`${resource}/.default`];
+        let scopes: string[] = this.config.scopes ||  [`${resource}/.default`];
         if (this.resourceScopeMap.has(resource)) {
             scopes = this.resourceScopeMap.get(resource)?.map(s => `${resource}/${s}`) || scopes;
         }

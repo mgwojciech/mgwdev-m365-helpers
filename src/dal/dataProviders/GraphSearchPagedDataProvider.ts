@@ -76,7 +76,8 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>, I
         }
         return requestBody;
     }
-    public async getData(): Promise<T[]> {
+
+    protected async callForData(): Promise<T[]> {
         let searchResponse = await this.graphClient.post(this.graphSearchEndpoint, {
             body: JSON.stringify(this.buildSearchRequest()),
             headers: {
@@ -105,6 +106,10 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>, I
         else {
             throw new Error(await searchResponse.text());
         }
+    }
+    public async getData(): Promise<T[]> {
+        this.currentPage = 0;
+        return this.callForData();
     }
     private parseAggregations(hitContainer: any) {
         try {
@@ -135,7 +140,7 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>, I
     public async getNextPage(): Promise<T[]> {
         if (this.isNextPageAvailable()) {
             this.currentPage++;
-            return this.getData();
+            return this.callForData();
         }
         return [];
     }
@@ -145,7 +150,7 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>, I
     public async getPreviousPage(): Promise<T[]> {
         if (this.isPreviousPageAvailable()) {
             this.currentPage--;
-            return this.getData();
+            return this.callForData();
         }
         else {
             return [];
@@ -159,6 +164,6 @@ export class GraphSearchPagedDataProvider<T> implements IPagedDataProvider<T>, I
     }
     public jumpToAPage(pageIndex: number): Promise<T[]> {
         this.currentPage = pageIndex;
-        return this.getData();
+        return this.callForData();
     }
 }

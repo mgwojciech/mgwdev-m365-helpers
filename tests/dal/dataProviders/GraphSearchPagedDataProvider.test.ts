@@ -154,4 +154,20 @@ describe("GraphSearchPagedDataProvider", () => {
         expect(callBody.requests[0].query.queryString).toBe("test");
         expect(callBody.requests[0].query.queryTemplate).toBe("({searchTerms}) AND Test 1");
     });
+    test("should reset pagination after getData", async () => {
+        let mockGraphClient = {
+            post: () => Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve(response)
+            })
+        };
+        let postSpy = jest.spyOn(mockGraphClient, "post");
+        let dataProvider = new GraphSearchPagedDataProvider<any>(mockGraphClient as any);
+        dataProvider.setQuery("test");
+        dataProvider.setOrder("TestColumn", "ASC");
+        await dataProvider.getData();
+        await dataProvider.getNextPage();
+        await dataProvider.getData();
+        expect(dataProvider.getCurrentPage()).toBe(0);
+    });
 });

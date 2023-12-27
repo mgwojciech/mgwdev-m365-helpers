@@ -45,6 +45,12 @@ export class Msal2AuthenticationService implements IAuthenticationService {
         if (!this.usePopup) {
             this.msalObj.handleRedirectPromise().then(this.handleResponse);
         }
+        try {
+            this.msalObj.initialize();
+        }
+        catch (err) {
+            console.log("Unable to initialize msal object", err);
+        }
     }
 
     protected handleResponse = (resp: AuthenticationResult | null) => {
@@ -61,7 +67,7 @@ export class Msal2AuthenticationService implements IAuthenticationService {
     }
     @queueRequest("msalLogin-{0}")
     protected login(resource: string) {
-        let scopes: string[] = this.config.scopes ||  [`${resource}/.default`];
+        let scopes: string[] = this.config.scopes || [`${resource}/.default`];
         if (this.resourceScopeMap.has(resource)) {
             scopes = this.resourceScopeMap.get(resource)?.map(s => `${resource}/${s}`) || scopes;
         }

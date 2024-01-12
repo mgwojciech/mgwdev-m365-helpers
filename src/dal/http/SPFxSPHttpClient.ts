@@ -40,8 +40,14 @@ export class SPFxSPHttpClient implements IHttpClient {
             method: "PUT"
         });
     }
-    public delete(url: string): Promise<IHttpClientResponse> {
+    public delete(url: string, options?: RequestInit): Promise<IHttpClientResponse> {
         return this.httpClient.fetch(url, SPHttpClient.configurations.v1, {
+            ...options,
+            headers: {
+                ...options?.headers,
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
             method: "DELETE"
         });
     }

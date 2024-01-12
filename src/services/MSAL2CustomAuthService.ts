@@ -167,9 +167,22 @@ export class MSAL2CustomAuthService implements IAuthenticationService {
             var token = await tokenResponse.json();
             return token;
         }
-        else{
-            var error = await tokenResponse.text();
-            throw new Error(error);
+        else {
+            try {
+                var error = await tokenResponse.json();
+                //handle expired refresh token
+                if(error.error_codes && error.error_codes.length > 0 && error.error_codes[0] === 700084){
+                    this.cacheService.remove(`msal.${this.config.clientId}.${resource}.authResult`);
+                    if(this.resourceTokenMap.has(resource)){
+                        this.resourceTokenMap.delete(resource);
+                    }
+                }
+                return this.getAuthResult(resource);
+            }
+            catch (ex) {
+                var err = await tokenResponse.text();
+                throw new Error(err);
+            }
         }
     }
 

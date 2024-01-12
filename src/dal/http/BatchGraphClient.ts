@@ -41,8 +41,8 @@ export class BatchGraphClient implements IHttpClient {
     public put(url: string, options?): Promise<IHttpClientResponse> {
         return this.baseClient.put(url, options);
     }
-    public delete(url: string): Promise<IHttpClientResponse> {
-        return this.baseClient.delete(url);
+    public delete(url: string, options?): Promise<IHttpClientResponse> {
+        return this.baseClient.delete(url, options);
     }
     protected generateBatch = async () => {
         const requestBatch = [...this.batch];

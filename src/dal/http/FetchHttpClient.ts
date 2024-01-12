@@ -25,9 +25,10 @@ export class FetchHttpClient implements IHttpClient{
             ...options
         });
     }
-    public delete(url: string): Promise<IHttpClientResponse> {
+    public delete(url: string, options?: RequestInit): Promise<IHttpClientResponse> {
         return fetch(url, {
             method: "DELETE",
+            ...options
         });
     }
 }

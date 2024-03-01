@@ -41,7 +41,7 @@ export class MSAL2CustomAuthService implements IAuthenticationService {
     }
 
     protected buildLoginUrl(resource: string) {
-        var url = new URL("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
+        var url = new URL(`https://login.microsoftonline.com/${this.config.tenantId || "common"}/oauth2/v2.0/authorize`);
         url.searchParams.append("client_id", this.config.clientId);
         url.searchParams.append("scope", `${resource}/.default openid profile offline_access`);
         url.searchParams.append("redirect_uri", this.config.redirectUri);
@@ -148,7 +148,7 @@ export class MSAL2CustomAuthService implements IAuthenticationService {
     }
 
     public async getAccessTokenFromRefreshToken(resource: string, refreshToken: string): Promise<ICustomAuthResult> {
-        var tokenResponse = await fetch(`https://login.microsoftonline.com/common/oauth2/v2.0/token`, {
+        var tokenResponse = await fetch(`https://login.microsoftonline.com/${this.config.tenantId || "common"}/oauth2/v2.0/token`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",

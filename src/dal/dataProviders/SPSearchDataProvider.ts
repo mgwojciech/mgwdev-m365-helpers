@@ -14,6 +14,8 @@ export class SPSearchDataProvider<T> implements IPagedDataProvider<T>, IRefinabl
     protected aggregations?: IAggregationRequest[];
     protected filters?: IFilterRequest[];
     public cultureId: number = 1033;
+    public enableInterleaving: boolean = false
+
     constructor(protected searchApiUrl: string, protected httpClient: IHttpClient,
         public selectFields: string[],
         public serviceQuery: string) {
@@ -48,6 +50,7 @@ export class SPSearchDataProvider<T> implements IPagedDataProvider<T>, IRefinabl
         request.SortList = this.orderColumn && [{Direction: this.isDescending ? 0 : 1, Property: this.orderColumn || ""}]
         request.SelectProperties = this.selectFields;
         request.Culture = this.cultureId;
+        request.EnableInterleaving = this.enableInterleaving
         let requestBody = {
             request
         }

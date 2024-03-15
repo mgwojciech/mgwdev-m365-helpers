@@ -16,4 +16,5 @@ export interface ISPSearchQuery {
     SortList?: { Direction: number, Property: string }[];
     TrimDuplicates: boolean;
     Culture?: number;
+    EnableInterleaving? :boolean;
 }

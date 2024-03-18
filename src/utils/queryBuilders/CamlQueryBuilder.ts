@@ -3,6 +3,7 @@ import { IQueryBuilder } from "./IQueryBuilder";
 
 export class CamlQueryBuilder implements IQueryBuilder {
     protected query: string = "";
+    
     public withQuery(query: string, joinBy: "And" | "Or" = "And"): CamlQueryBuilder {
         if (this.query) {
             this.query = `<${joinBy}>${this.query}${query}</${joinBy}>`;
@@ -12,6 +13,15 @@ export class CamlQueryBuilder implements IQueryBuilder {
         }
         return this;
     }
+    /**
+     * Add field query to the query
+     * @param fieldInfo Field information
+     * @param joinBy Join by And or Or
+     * @returns CamlQueryBuilder
+     * @throws Error if field name or type is not provided
+     * @throws Error if field comparer is not provided
+     * @throws Error if field comparer is not supported
+     */
     public withFieldQuery(fieldInfo: IQueryField, joinBy: "And" | "Or" = "And"): CamlQueryBuilder {
         if (!fieldInfo.name) {
             throw new Error("Field name is required");

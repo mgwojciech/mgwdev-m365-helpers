@@ -42,27 +42,25 @@ export class Msal2AuthenticationService implements IAuthenticationService {
                 cacheLocation: "sessionStorage"
             }
         });
-        if (!this.usePopup) {
-            this.msalObj.handleRedirectPromise().then(this.handleResponse);
-        }
-        try {
-            this.msalObj.initialize();
-        }
-        catch (err) {
-            console.log("Unable to initialize msal object", err);
-        }
     }
 
     protected handleResponse = (resp: AuthenticationResult | null) => {
         if (resp) {
             const scopes = resp.scopes || [];
-            const resource = new URL(scopes[0]).origin;
-            sessionStorage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, resp.accessToken);
-            this.resourceTokenMap.set(resource, resp.accessToken);
-            // Remove the code from the URL
-            if (window.history && window.history.replaceState) {
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+            scopes.forEach(s => {
+                try {
+                    const resource = new URL(s).origin;
+                    sessionStorage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, resp.accessToken);
+                    this.resourceTokenMap.set(resource, resp.accessToken);
+                    // Remove the code from the URL
+                    if (window.history && window.history.replaceState) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                }
+                catch (err) {
+                    console.log("Error parsing scopes", err);
+                }
+            });
         }
     }
     @queueRequest("msalLogin-{0}")
@@ -82,6 +80,17 @@ export class Msal2AuthenticationService implements IAuthenticationService {
     }
     @queueRequest("access-token-{0}")
     public async getAccessToken(resource: string): Promise<string> {
+
+        try {
+            await this.msalObj.initialize().then(() => {
+                if (!this.usePopup) {
+                    this.msalObj.handleRedirectPromise().then(this.handleResponse);
+                }
+            });
+        }
+        catch (err) {
+            console.log("Unable to initialize msal object", err);
+        }
         let token: string | null | undefined = this.resourceTokenMap.get(resource);
         if (!token) {
             token = sessionStorage.getItem(`msal.${this.config.clientId}.${resource}.idtoken`);

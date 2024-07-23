@@ -45,7 +45,7 @@ export class ImageHelper {
         return ImageHelper.getThumbnailImageFromGraph(graphClient, graphApiUrl);
     }
 
-    protected static async getThumbnailImageFromGraph(graphClient: IHttpClient, graphApiUrl: string) {
+    public static async getThumbnailImageFromGraph(graphClient: IHttpClient, graphApiUrl: string) {
         const response = await graphClient.get(graphApiUrl);
         if (response.headers["content-type"] === "application/json") {
             const binaryData = await response.text()

@@ -2,7 +2,7 @@ import { IHttpClient } from "../http";
 import { IPagedDataProvider } from "./IPagedDataProvider";
 
 /**
- * Handles pagination for queries against MS Graph API resources.
+ * Handles pagination for queries against API resources.
  */
 export class ODataPagedDataProvider<T> implements IPagedDataProvider<T>{
     protected filterQuery: string = "";
@@ -14,17 +14,17 @@ export class ODataPagedDataProvider<T> implements IPagedDataProvider<T>{
     public pageSize: number = 25;
     public allItemsCount: number = -1;
     /**
-     * Initializes new instance of GraphODataPagedDataProvider.
-     * @param graphClient IHttpClient implementation supporting Graph API calls.
+     * Initializes new instance of ODataPagedDataProvider.
+     * @param graphClient IHttpClient implementation supporting API calls.
      * @param resourceQuery Base query to the resource. For example https://graph.microsoft.com/v1.0/users.
      * @param skipCountCheck As some resources does not support $count or You may not want to do extra call, You can skip the call for items count. Defaults to false.
      */
-    constructor(protected graphClient: IHttpClient, protected resourceQuery: string, protected skipCountCheck = false, public expandQuery: string = "") {
+    constructor(protected graphClient: IHttpClient, protected resourceQuery: string, protected skipCountCheck = false, public expandQuery: string = "", public selectQuery: string = "") {
 
     }
     protected async getAllItemsCount(): Promise<number> {
         if (this.skipCountCheck) {
-            return -1;
+            return Infinity;
         }
         let query = this.getQuery();
         let apiUri = `${this.resourceQuery}/$count`;
@@ -52,6 +52,9 @@ export class ODataPagedDataProvider<T> implements IPagedDataProvider<T>{
         }
         if(this.expandQuery){
             apiUri += `&$expand=${this.expandQuery}`;
+        }
+        if(this.selectQuery){
+            apiUri += `&$select=${this.selectQuery}`;
         }
 
         return apiUri;
@@ -89,7 +92,7 @@ export class ODataPagedDataProvider<T> implements IPagedDataProvider<T>{
         return this.callGraphAPI(url);
     }
     public isNextPageAvailable(): boolean {
-        return !!this.nextPageLink || (this.currentPage + 1) * this.pageSize < this.allItemsCount;;
+        return !!this.nextPageLink || (this.currentPage + 1) * this.pageSize < this.allItemsCount;
     }
     public async getPreviousPage(): Promise<T[]> {
         if (!this.isPreviousPageAvailable()) {

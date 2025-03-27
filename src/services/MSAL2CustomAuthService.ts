@@ -124,7 +124,7 @@ export class MSAL2CustomAuthService implements IAuthenticationService {
     }
 
     public async getAccessTokenFromCode(resource: string, code: string): Promise<ICustomAuthResult> {
-        var tokenResponse = await fetch(`https://login.microsoftonline.com/common/oauth2/v2.0/token`, {
+        var tokenResponse = await fetch(`https://login.microsoftonline.com/${this.config.tenantId || "common"}/oauth2/v2.0/token`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded",

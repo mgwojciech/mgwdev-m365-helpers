@@ -1,12 +1,13 @@
 {
   "name": "mgwdev-m365-helpers",
-  "version": "0.2.10",
+  "version": "0.2.12",
   "description": "Helper library to communicate with M365 resources",
   "main": "lib-commonjs/index.js",
   "module": "lib/index.js",
   "scripts": {
-    "test": "test",
-    "build": "tsc && tsc --outDir lib-commonjs -module commonjs"
+    "test": "jest",
+    "build": "tsc && tsc --outDir lib-commonjs -module commonjs",
+    "test:report": "jest --reporter=junit --outputFile.junit=./tests/TEST-mgwdev-m365-helpers.xml --watch=false"
   },
   "keywords": [
     "SharePoint",

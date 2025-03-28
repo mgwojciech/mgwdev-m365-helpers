@@ -7,7 +7,7 @@
   "scripts": {
     "test": "jest",
     "build": "tsc && tsc --outDir lib-commonjs -module commonjs",
-    "test:report": "jest --reporter=junit --outputFile.junit=./tests/TEST-mgwdev-m365-helpers.xml --watch=false"
+    "test:report": "jest --reporters=jest-junit --watch=false"
   },
   "keywords": [
     "SharePoint",
@@ -23,6 +23,7 @@
     "chai": "^4.3.6",
     "jest": "^28.1.1",
     "jest-environment-jsdom": "^28.1.1",
+    "jest-junit": "^16.0.0",
     "msal": "^1.4.16",
     "ts-jest": "^28.0.5",
     "typescript": "^4.7.4"
@@ -31,6 +32,10 @@
     "transform": {
       "^.+\\.(ts|tsx)$": "ts-jest"
     }
+  },
+  "jest-junit": {
+    "outputDirectory": "./tests",
+    "outputName": "TEST-mgwdev-m365-helpers.xml"
   },
   "repository": {
     "type": "git",

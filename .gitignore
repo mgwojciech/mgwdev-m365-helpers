@@ -2,3 +2,4 @@ node_modules
 lib
 lib-commonjs
 coverage
+tests/TEST-mgwdev-m365-helpers.xml

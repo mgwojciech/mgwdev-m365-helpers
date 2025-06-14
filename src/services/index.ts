@@ -4,3 +4,4 @@ export * from "./cache";
 export * from "./MSAL2CustomAuthService";
 //export * from "./NodeAppOnlyAuthenticationService";
 export * from "./sp/PermissionCheckService";
+export * from "./driveItem";

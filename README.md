@@ -124,6 +124,8 @@ if(pagedProvider.isPreviousPageAvailable()){
 
 ## Utils
 
+More on [UtilsPage](./src/utils/utils.md)
+
 ### FunctionUtils
 
 #### useStorage
@@ -143,5 +145,8 @@ class TestClassComputedKey {
 
 Now, the result of the first execution of method getData will be stored (by default in sessionStorage). Each next execution will just return value stored in sessionStorage.
 
-`Note: this decorator works only with async methods
-`
+`Note: this decorator works only with async methods`
+
+## Services
+
+More on services can be found [here](./src/services/services.md)

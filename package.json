@@ -1,6 +1,6 @@
 {
   "name": "mgwdev-m365-helpers",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "description": "Helper library to communicate with M365 resources",
   "main": "lib-commonjs/index.js",
   "module": "lib/index.js",

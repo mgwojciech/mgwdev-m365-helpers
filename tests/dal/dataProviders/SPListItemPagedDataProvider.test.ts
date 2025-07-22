@@ -159,7 +159,7 @@ describe("SPListItemCamlPagedDataProvider", () => {
 		}];
 		let expectedObjects = [{
 			Title: "Id: 1"
-		},{
+		}, {
 			Title: "Id: 2"
 		}, {
 			Title: "Id: 3"
@@ -190,10 +190,108 @@ describe("SPListItemCamlPagedDataProvider", () => {
 				json: () => Promise.resolve({ Row: expectedItems })
 			});
 		});
-		let dataProvider = new SPListItemCamlPagedDataProvider(spHttpClientMock as any, "/sites/test-site", "test-list-id",["ID"],(item)=>({
+		let dataProvider = new SPListItemCamlPagedDataProvider(spHttpClientMock as any, "/sites/test-site", "test-list-id", ["ID"], (item) => ({
 			Title: `Id: ${item.ID}`
 		}));
 		let actual = await dataProvider.getData();
 		deepStrictEqual(actual, expectedObjects);
 	})
+	test("should execute pagination back and forth", async () => {
+		let expectedItems = [{
+			ID: 1
+		}, {
+			ID: 2
+		}, {
+			ID: 3
+		}];
+		let expectedItemsOnTheSecondPage = [{
+			ID: 3
+		}, {
+			ID: 5
+		}, {
+			ID: 6
+		}];
+		let expectedItemsOnTheThirdPage = [{
+			ID: 7
+		}];
+		let expectedTotalCount = 7;
+		let spHttpClientMock = {
+			get: (url) => { },
+			post: (url, config, body) => { }
+		}
+		jest.spyOn(spHttpClientMock, "get").mockImplementation((url) => {
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ ItemCount: expectedTotalCount })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
+
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ Row: expectedItems })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream?TryNewExperienceSingle=TRUE&Paged=TRUE&p_ID=3")).toBeGreaterThan(-1);
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ Row: expectedItemsOnTheSecondPage })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream?TryNewExperienceSingle=TRUE&Paged=TRUE&p_ID=6")).toBeGreaterThan(-1);
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ Row: expectedItemsOnTheThirdPage })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream?TryNewExperienceSingle=TRUE&Paged=TRUE")).toBeGreaterThan(-1);
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ Row: expectedItemsOnTheSecondPage })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream?TryNewExperienceSingle=TRUE&Paged=TRUE")).toBeGreaterThan(-1);
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ Row: expectedItems })
+			});
+		});
+		jest.spyOn(spHttpClientMock, "post").mockImplementationOnce((url, config, options) => {
+			expect(url.indexOf("/sites/test-site/_api/web/lists('test-list-id')/RenderListDataAsStream?TryNewExperienceSingle=TRUE&Paged=TRUE")).toBeGreaterThan(-1);
+			return Promise.resolve({
+				ok: true,
+				json: () => Promise.resolve({ Row: expectedItems })
+			});
+		});
+		let dataProvider = new SPListItemCamlPagedDataProvider(spHttpClientMock as any, "/sites/test-site", "test-list-id");
+		dataProvider.pageSize = 3;
+		let actual = await dataProvider.getData();
+		expect(actual).toEqual(expectedItems);
+		expect(dataProvider.allItemsCount).toEqual(expectedTotalCount);
+		expect(dataProvider.isNextPageAvailable()).toBe(true);
+		expect(dataProvider.getCurrentPage()).toBe(0);
+
+		let actualSecondPage = await dataProvider.getNextPage();
+
+		expect(actualSecondPage).toEqual(expectedItemsOnTheSecondPage);
+		expect(dataProvider.isNextPageAvailable()).toBe(true);
+		expect(dataProvider.getCurrentPage()).toBe(1);
+
+		let thirdPage = await dataProvider.getNextPage();
+		expect(dataProvider.isNextPageAvailable()).toBe(false);
+		expect(dataProvider.getCurrentPage()).toBe(2);
+
+		await dataProvider.getPreviousPage();
+		expect(dataProvider.getCurrentPage()).toBe(1);
+
+		await dataProvider.getPreviousPage();
+		expect(dataProvider.getCurrentPage()).toBe(0);
+
+		await dataProvider.getNextPage();
+		expect(dataProvider.getCurrentPage()).toBe(1);
+	});
 });

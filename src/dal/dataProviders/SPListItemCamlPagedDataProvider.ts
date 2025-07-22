@@ -146,9 +146,9 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
     return this.previousPageIndex + 2 <= Math.floor(this.allItemsCount / this.pageSize);
   }
   public async getPreviousPage(): Promise<T[]> {
-    let requestUrl = this.previousPages[this.previousPageIndex];
+    this.currentLink = this.previousPages[this.previousPageIndex];
     this.previousPageIndex--;
-    return this.getDataWithAPI(requestUrl);
+    return this.getDataWithAPI(this.currentLink);
   }
   public isPreviousPageAvailable(): boolean {
     return this.previousPageIndex >= 0;

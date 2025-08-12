@@ -7,3 +7,4 @@ export * from "./FetchHttpClient";
 export * from "./BatchSPClient";
 export * from "./SandboxProxyGraphClient";
 export * from "./MockFileHttpClient";
+export * from "./DataverseBatchClient";

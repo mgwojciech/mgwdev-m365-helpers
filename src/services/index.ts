@@ -5,3 +5,5 @@ export * from "./MSAL2CustomAuthService";
 //export * from "./NodeAppOnlyAuthenticationService";
 export * from "./sp/PermissionCheckService";
 export * from "./driveItem";
+export * from "./PersonaService";
+export * from "./SearchInputSuggestionService";

@@ -45,7 +45,7 @@ export class ODataPagedDataProvider<T> implements IPagedDataProvider<T>{
         let query = this.getQuery();
         let apiUri = `${this.resourceQuery}?$top=${this.pageSize}`;
         if(this.orderQuery){
-            apiUri += `&$orderBy=${this.orderQuery}`;
+            apiUri += `&$orderby=${this.orderQuery}`;
         }
         if (query) {
             apiUri += `&$filter=${query}`;
@@ -101,6 +101,7 @@ export class ODataPagedDataProvider<T> implements IPagedDataProvider<T>{
         let query = this.previousPages[this.previousPageIndex];
         if(!query){
             query = this.buildInitialQuery();
+            if((this.previousPageIndex * this.pageSize) > 0)
             query += "&$skip=" + (this.previousPageIndex * this.pageSize);
         }
         let data = await this.callGraphAPI(query);

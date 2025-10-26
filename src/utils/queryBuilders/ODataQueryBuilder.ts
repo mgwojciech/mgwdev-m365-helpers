@@ -61,7 +61,7 @@ export class ODataQueryBuilder implements IQueryBuilder {
                         break;
                     }
                     else {
-                        newQuery = `${fieldInfo.name} ${fieldInfo.comparer.toLocaleLowerCase().replace('geq', 'ge').replace("leq","le")} `;
+                        newQuery = `${fieldInfo.name} ${fieldInfo.comparer.toLocaleLowerCase().replace('geq', 'ge').replace("leq","le").replace("neq","ne")} `;
                         if (fieldInfo.type && (fieldInfo.type === "Number" || fieldInfo.type === "Counter" || fieldInfo.type === "Integer")) {
                             newQuery += fieldInfo.value;
                         }

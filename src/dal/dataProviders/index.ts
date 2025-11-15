@@ -6,3 +6,4 @@ export * from "./DeferredWithCacheDataProvider";
 export * from "./PeopleProvider";
 export * from "./ODataPagedDataProvider";
 export * from "./CopilotRetrievalDataProvider";
+export * from "./DataversePagedDataProvider";

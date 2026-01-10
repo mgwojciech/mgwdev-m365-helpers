@@ -1,152 +1,409 @@
-## MGWDEV M365 Helpers
+# MGWDEV M365 Helpers
 
-This library is a set of classes and methods I consider useful when developing apps against M365 stack.
+A TypeScript helper library for M365 API communication (SharePoint, MS Graph, Dataverse). Works in both SPFx webparts and standalone applications (browser/Node.js).
+
+## Installation
+
+```bash
+npm install mgwdev-m365-helpers
+```
+
+## Architecture Overview
+
+The library is built around composable HTTP clients using the **decorator pattern**. All clients implement `IHttpClient`, allowing them to be wrapped and combined:
+
+```
+FetchHttpClient → AuthHttpClient → BatchGraphClient
+     (base)          (adds auth)      (adds batching)
+```
+
+This design lets you:
+- Use any combination of features by wrapping clients
+- Create custom implementations (e.g., axios-based client)
+- Swap authentication strategies without changing business logic
 
 ## Data Access Layer (DAL)
 
-The core of this library is dal folder. Under dal/http there are multiple http clients You can use in SPFx as well as any other app (that includes node.js console applications). 
+### IHttpClient Interface
+
+All HTTP clients implement this interface:
+
+```typescript
+interface IHttpClient {
+    get(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
+    post(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
+    patch(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
+    put(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
+    delete(url: string, options?: RequestInit): Promise<IHttpClientResponse>;
+}
+```
+
+### FetchHttpClient
+
+The base HTTP client wrapping the native `fetch` API. Optionally accepts a `baseUrl` for relative URL support.
+
+```javascript
+let client = new FetchHttpClient("https://api.example.com");
+let response = await client.get("/endpoint"); // calls https://api.example.com/endpoint
+```
 
 ### AuthHttpClient
 
-If You are not using SPFx Extensibility Principal AuthHttpClient will handle authentication for You (if You are using SPFx Extensibility Principal use SPFxGraphHttpClient or SPFxSPHttpClient).
+Adds authentication to any base client. Requires an `IAuthenticationService` implementation.
 
-To construct AuthHttpClient You need to provide baseClient (usually it will be FetchHttpClient but if You like axios You can create Your own based on axios) and implementation of IAuthenticationService. Currently there are two supported implementations of IAuthenticationService. One is MsalAuthenticationService and the other is NodeAppOnlyAuthenticationService.
-
-``` Javascript
-
+```javascript
 let baseClient = new FetchHttpClient();
-let authService = new MsalAuthenticationService("<client-id>");
+let authService = new Msal2AuthenticationService({ clientId: "<client-id>" });
 
 let client = new AuthHttpClient(authService, baseClient);
+// Set resource URI if not MS Graph (default)
+client.resourceUri = "https://your-dataverse.crm.dynamics.com";
 
 let me = await client.get("https://graph.microsoft.com/v1.0/me");
 ```
 
 ### BatchGraphClient
 
-BatchGraphClient will automatically create batch out of Yours get requests. In constructor it requires a baseClient (AuthHttpClient, SPFxGraphHttpClient or any IHttpClient capable of calling MS Graph).
+Automatically batches concurrent GET/POST requests to MS Graph. Requests made within `batchWaitTime` (default 500ms) are combined into a single batch request. Batches split at `batchSplitThreshold` (default 15).
 
-``` Javascript
-
+```javascript
 let baseClient = new FetchHttpClient();
-let authService = new MsalAuthenticationService("<client-id>");
+let authService = new Msal2AuthenticationService({ clientId: "<client-id>" });
 let authClient = new AuthHttpClient(authService, baseClient);
 
 let client = new BatchGraphClient(authClient);
 
-let [me, photo, presence] = await Promise.all([
+// All three requests are automatically combined into one batch
+let [me, presence, photo] = await Promise.all([
     client.get("https://graph.microsoft.com/v1.0/me"),
     client.get("https://graph.microsoft.com/v1.0/me/presence"),
     client.get("https://graph.microsoft.com/v1.0/me/photo/$value")
-])
+]);
 ```
 
-Or in SPFx context
-
-``` Javascript
-let spfxGraphClient = await this.context.aadHttpClientFactory.getClient('https://graph.microsoft.com');
-
-let client = new BatchGraphClient(new SPFxGraphHttpClient(spfxGraphClient));
-
-let [me, photo, presence] = await Promise.all([
-    client.get("https://graph.microsoft.com/v1.0/me"),
-    client.get("https://graph.microsoft.com/v1.0/me/presence"),
-    client.get("https://graph.microsoft.com/v1.0/me/photo/$value")
-])
-```
-
-In both cases all three request will be combined into one batch request. Thanks to this You will not have to think about batching ever again. It will just happen.
+**Features:**
+- Automatic deduplication of identical GET requests
+- Handles 429 (throttling) responses with automatic retry
+- Separates v1.0 and beta requests into appropriate batch endpoints
 
 ### BatchSPClient
 
-In a very similar way You can use SPBatchClient to batch requests to SharePoint endpoints.
-Let's consider SPFx scenario
+Automatic batching for SharePoint REST API calls.
 
-``` Javascript
-let spfxSPClient = new SPFxSPHttpClient(this.context.spHttpClient);
+```javascript
+let authClient = new AuthHttpClient(authService, new FetchHttpClient());
+let client = new BatchSPClient(authClient, "https://contoso.sharepoint.com/sites/mysite");
 
-let client = new BatchSPClient(spfxSPClient, this.context.pageContext.web.absoluteUrl);
+let [web, site] = await Promise.all([
+    client.get("/_api/web").then(r => r.json()),
+    client.get("/_api/site").then(r => r.json())
+]);
+```
 
-let [web, site] = await Promise.all([client.get("/_api/web").then(r => r.json()), client.get("/_api/site").then(r => r.json())]);
+### DataverseBatchClient
 
+Automatic batching for Dataverse Web API calls.
+
+```javascript
+let authClient = new AuthHttpClient(authService, new FetchHttpClient());
+authClient.resourceUri = "https://your-org.crm.dynamics.com";
+
+let client = new DataverseBatchClient(
+    authClient,
+    "https://your-org.crm.dynamics.com",
+    "/api/data/v9.2"  // optional, defaults to v9.2
+);
+
+let [accounts, contacts] = await Promise.all([
+    client.get("/accounts?$top=10"),
+    client.get("/contacts?$top=10")
+]);
+```
+
+## SPFx Integration
+
+For SPFx projects, import adapters directly from the source files to wrap SPFx's built-in HTTP clients:
+
+```javascript
+import { SPFxGraphHttpClient } from "mgwdev-m365-helpers/lib/dal/http/SPFxGraphHttpClient";
+import { SPFxSPHttpClient } from "mgwdev-m365-helpers/lib/dal/http/SPFxSPHttpClient";
 ```
 
 ### SPFxGraphHttpClient
 
-SPFxGraphHttpClient is a simple adapter converting AadHttpClient from @microsoft/sp-http to IHttpClient implementation from this library. One of the advantages of IHttpClient is You don't have to pass HttpClient.configurations.v1 everywhere.
+Adapts `AadHttpClient` from `@microsoft/sp-http` to `IHttpClient`.
+
+```javascript
+let spfxGraphClient = await this.context.aadHttpClientFactory.getClient('https://graph.microsoft.com');
+let client = new BatchGraphClient(new SPFxGraphHttpClient(spfxGraphClient));
+
+let [me, presence, photo] = await Promise.all([
+    client.get("https://graph.microsoft.com/v1.0/me"),
+    client.get("https://graph.microsoft.com/v1.0/me/presence"),
+    client.get("https://graph.microsoft.com/v1.0/me/photo/$value")
+]);
+```
 
 ### SPFxSPHttpClient
 
-SPFxSPHttpClient serves the same purpose as SPFxGraphHttpClient but for calls to SharePoint in SPFx context.
+Adapts `SPHttpClient` from `@microsoft/sp-http` to `IHttpClient`.
 
-## DataProviders
+```javascript
+let spfxSPClient = new SPFxSPHttpClient(this.context.spHttpClient);
+let client = new BatchSPClient(spfxSPClient, this.context.pageContext.web.absoluteUrl);
 
-One of the most common task is to present some data in a list or table. Usually we need to implement pagination to that list to keep high performance. Under dataProviders folder You can find IPagedDataProvider interface which exposes methods required to implement pagination. Currently following classes implements that interface.
+let [web, site] = await Promise.all([
+    client.get("/_api/web").then(r => r.json()),
+    client.get("/_api/site").then(r => r.json())
+]);
+```
 
-### SPListItemCamlPagedDataProvider
+> **Note:** SPFx adapters are not exported from the main entry point to avoid SPFx dependency for non-SPFx consumers. Import them directly when needed.
 
-Under this complex name there is a logic to paginate list items of provided list. If You want to add filter - this class supports caml query.
+## Data Providers
 
-``` Javascript
-let spHttpClient = new SPFxSPHttpClient(this.context.spHttpClient);
-let pagedProvider = new SPListItemCamlPagedDataProvider<any>(spHttpClient,"https://contoso.sharepoint.com/sites/tea-point","2fa2e9af-593b-4c89-b606-e174ded5b563");
-pagedProvider.pageSize = 25;
-pagedProvider.setQuery(`<Eq><FieldRef Name="Test" /><Value Type="Choice">Test 1</Value></Eq>`);
-let data = await pagedProvider.getData();
-let totalItemsCount = pagedProvider.allItemsCount;
-if(pagedProvider.isNextPageAvailable()){
-    let nextPage = await pagedProvider.getNextPage()
+Standardized pagination interfaces for presenting data in lists/tables. All providers implement `IPagedDataProvider<T>`.
+
+### IPagedDataProvider Interface
+
+```typescript
+interface IPagedDataProvider<T> {
+    getData(): Promise<T[]>;           // Get first page, starts enumeration
+    getNextPage(): Promise<T[]>;       // Get next page
+    getPreviousPage(): Promise<T[]>;   // Get previous page
+    isNextPageAvailable(): boolean;
+    isPreviousPageAvailable(): boolean;
+    setQuery(value: string);           // Set filter query
+    setOrder(orderBy: string, orderDir: "ASC" | "DESC");
+    allItemsCount: number;             // Total items matching query
+    pageSize: number;                  // Items per page
+}
+```
+
+### ODataPagedDataProvider
+
+Generic OData pagination for any OData-compatible API.
+
+```javascript
+let provider = new ODataPagedDataProvider(
+    httpClient,
+    "https://graph.microsoft.com/v1.0/users"
+);
+provider.pageSize = 25;
+provider.setQuery("startsWith(displayName,'A')");
+
+let users = await provider.getData();
+if (provider.isNextPageAvailable()) {
+    let nextPage = await provider.getNextPage();
 }
 ```
 
 ### GraphODataPagedDataProvider
 
-GraphODataPagedDataProvider will allow You to easy paginate through resources exposed by MS Graph API
-`
-Note: Not all endpoints exposed by MS Graph API allow pagination. You can check if an endpoint allows pagination in Graph Explorer.
-`
-```Javascript
-let spfxGraphClient = await this.context.aadHttpClientFactory.getClient('https://graph.microsoft.com');
+MS Graph-specific pagination with proper OData handling.
 
-let batchClient = new BatchGraphClient(new SPFxGraphHttpClient(spfxGraphClient));
-let pagedProvider = new GraphODataPagedDataProvider<any>(batchClient, "https://graph.microsoft.com/v1.0/users");
-pagedProvider.pageSize = 10;
+```javascript
+let batchClient = new BatchGraphClient(authClient);
+let provider = new GraphODataPagedDataProvider(
+    batchClient,
+    "https://graph.microsoft.com/v1.0/users"
+);
+provider.pageSize = 10;
 
-let users = await pagedProvider.getData();
-let allUsers = pagedProvider.allItemsCount;
-if(pagedProvider.isNextPageAvailable()){
-    let nextPage = await pagedProvider.getNextPage();
-}
-if(pagedProvider.isPreviousPageAvailable()){
-    let previousPage = await pagedProvider.getPreviousPage();
+let users = await provider.getData();
+console.log(`Total users: ${provider.allItemsCount}`);
+```
+
+> **Note:** Not all Graph endpoints support pagination. Check Graph Explorer for endpoint capabilities.
+
+### SPListItemCamlPagedDataProvider
+
+SharePoint list pagination with CAML query support.
+
+```javascript
+let provider = new SPListItemCamlPagedDataProvider(
+    spHttpClient,
+    "https://contoso.sharepoint.com/sites/mysite",
+    "list-guid-here"
+);
+provider.pageSize = 25;
+provider.setQuery(`<Eq><FieldRef Name="Status" /><Value Type="Choice">Active</Value></Eq>`);
+
+let items = await provider.getData();
+let totalItems = provider.allItemsCount;
+
+if (provider.isNextPageAvailable()) {
+    let nextPage = await provider.getNextPage();
 }
 ```
+
+### DataversePagedDataProvider
+
+Dataverse table pagination with OData support.
+
+```javascript
+let provider = new DataversePagedDataProvider(
+    dataverseClient,
+    "https://your-org.crm.dynamics.com",
+    "accounts"  // table name
+);
+provider.pageSize = 50;
+provider.setQuery("statecode eq 0");
+
+let accounts = await provider.getData();
+```
+
+## Authentication Services
+
+The library provides `IAuthenticationService` implementations for different authentication scenarios.
+
+### IAuthenticationService Interface
+
+```typescript
+interface IAuthenticationService {
+    getAccessToken(resource: string): Promise<string>;
+}
+```
+
+### Msal2AuthenticationService (Browser)
+
+For browser-based applications using MSAL 2.x with interactive authentication.
+
+```javascript
+import { Msal2AuthenticationService } from "mgwdev-m365-helpers/lib/services/Msal2AuthenticationService";
+
+let authService = new Msal2AuthenticationService({
+    clientId: "<client-id>",
+    tenantId: "<tenant-id>",      // optional, defaults to 'common'
+    redirectUri: window.location.origin  // optional
+}, true);  // usePopup = true (default)
+
+let token = await authService.getAccessToken("https://graph.microsoft.com");
+```
+
+### NodeAppOnlyAuthenticationService (Node.js)
+
+For Node.js applications using client credentials flow (app-only authentication).
+
+```javascript
+import { NodeAppOnlyAuthenticationService } from "mgwdev-m365-helpers/lib/services/NodeAppOnlyAuthenticationService";
+
+let authService = new NodeAppOnlyAuthenticationService(
+    "<client-id>",
+    "<client-secret>",
+    "<tenant-id>"
+);
+
+let token = await authService.getAccessToken("https://graph.microsoft.com");
+```
+
+> **Note:** Authentication services requiring MSAL are not exported from main entry to avoid dependency issues. Import directly when needed.
 
 ## Utils
 
-More on [UtilsPage](./src/utils/utils.md)
+### ArrayUtilities
 
-### FunctionUtils
+Utility methods for array operations used throughout the library.
 
-#### useStorage
-This is a function decorator that will handle caching. If You have a method that is time consuming and should be cached, this is the easiest way to do that.
+```javascript
+// Split array into chunks (used for batch size limits)
+ArrayUtilities.splitToMaxLength([1,2,3,4,5], 2); // [[1,2], [3,4], [5]]
 
-```Javascript
-class TestClassComputedKey {
-		constructor(){
-
-		}
-		@useStorage("test-key-{0}")
-		public getData(testArgument: string): Promise<string> {
-			return Promise.resolve("data");
-		}
-	}
+// Get subset of Map by keys
+ArrayUtilities.getSubMap(myMap, ['key1', 'key2']);
 ```
 
-Now, the result of the first execution of method getData will be stored (by default in sessionStorage). Each next execution will just return value stored in sessionStorage.
+### FunctionUtils - @useStorage Decorator
 
-`Note: this decorator works only with async methods`
+Cache decorator for async methods. Results are stored in sessionStorage (by default).
+
+```javascript
+class MyService {
+    @useStorage("user-{0}")  // {0} is replaced with first argument
+    public async getUser(userId: string): Promise<User> {
+        return await fetchUserFromApi(userId);
+    }
+}
+
+// First call fetches from API and caches
+// Subsequent calls return cached value
+```
+
+### TokenUtils
+
+Utilities for working with Azure AD tokens.
+
+```javascript
+// Parse token payload
+let tokenInfo = TokenUtils.getTokenInfo(accessToken);
+
+// Check if token is still valid
+let isValid = TokenUtils.isTokenValid(accessToken);
+```
+
+### ImageHelper
+
+Methods for retrieving thumbnails and images from SharePoint/Graph.
+
+```javascript
+// Get thumbnail from Graph API
+let thumbnail = await ImageHelper.getThumbnailImageFromMetadata(
+    graphClient,
+    siteId,
+    webId,
+    fileId,
+    "medium"  // "small" | "medium" | "large"
+);
+```
+
+More utilities documented in [utils.md](./src/utils/utils.md).
 
 ## Services
 
-More on services can be found [here](./src/services/services.md)
+### CachedDriveItemService
+
+Caches drive item contents using QuickXorHash for cache validation.
+
+```javascript
+let service = new CachedDriveItemService(graphClient);
+let content = await service.getDriveItemContent("https://contoso.sharepoint.com/sites/docs/file.docx");
+```
+
+More services documented in [services.md](./src/services/services.md).
+
+## Development
+
+### Commands
+
+```bash
+npm install     # Install dependencies
+npm test        # Run Jest tests
+npm run build   # Build ESM (lib/) and CommonJS (lib-commonjs/)
+```
+
+### Project Structure
+
+```
+src/
+├── dal/
+│   ├── http/           # HTTP clients (IHttpClient implementations)
+│   └── dataProviders/  # Paged data providers
+├── services/           # Authentication and utility services
+├── model/              # TypeScript interfaces
+└── utils/              # Utility classes and helpers
+```
+
+### Dual Module Output
+
+The library outputs both ES modules (`lib/`) and CommonJS (`lib-commonjs/`) for maximum compatibility:
+
+```json
+{
+  "main": "lib-commonjs/index.js",   // CommonJS entry
+  "module": "lib/index.js"           // ES module entry
+}
+```
+
+## License
+
+MIT

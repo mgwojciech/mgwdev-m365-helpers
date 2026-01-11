@@ -6,7 +6,15 @@ export type IQueryFieldType =
   | 'MultiChoice'
   | 'Lookup'
   | 'Membership'
-  | 'User';
+  | 'User'
+  | 'Boolean'
+  | 'Counter'
+  | 'URL'
+  | 'Computed'
+  | 'ContentTypeId'
+  | 'File'
+  | 'Integer'
+  | 'Choice';
 
 export interface IQueryField {
     name: string,

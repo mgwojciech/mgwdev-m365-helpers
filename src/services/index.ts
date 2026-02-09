@@ -7,3 +7,4 @@ export * from "./sp/PermissionCheckService";
 export * from "./driveItem";
 export * from "./PersonaService";
 export * from "./SearchInputSuggestionService";
+export * from "./sp/PageAdvancedAnalyticsService";

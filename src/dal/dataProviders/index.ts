@@ -7,3 +7,5 @@ export * from "./PeopleProvider";
 export * from "./ODataPagedDataProvider";
 export * from "./CopilotRetrievalDataProvider";
 export * from "./DataversePagedDataProvider";
+export * from "./SPSearchDataProvider";
+export * from "./SPSearchAnalyticsDataProvider";

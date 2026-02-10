@@ -31,6 +31,10 @@ export class BatchGraphClient implements IHttpClient {
         });
     }
     public post(url: string, options?): Promise<IHttpClientResponse> {
+        //Chat over stream and batch endpoint should not be batched, so we will just pass them to base client
+        if(url.toLocaleLowerCase().endsWith("/batch") || url.toLocaleLowerCase().endsWith("/chatoverstream")){
+            return this.baseClient.post(url, options);
+        }
         return new Promise<IHttpClientResponse>((resolve, error) => {
             this.createGetBatchRequest(url, "POST", options, { resolve, error });
         });

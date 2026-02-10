@@ -369,6 +369,149 @@ let service = new CachedDriveItemService(graphClient);
 let content = await service.getDriveItemContent("https://contoso.sharepoint.com/sites/docs/file.docx");
 ```
 
+### CopilotChatService
+
+Service for interacting with Microsoft 365 Copilot Chat API using Server-Sent Events (SSE) streaming. Enables building chat experiences powered by Microsoft Copilot.
+
+**Prerequisites:**
+- Microsoft 365 Copilot license
+- MS Graph permissions for Copilot API (beta)
+
+#### Basic Usage
+
+```javascript
+import { CopilotChatService } from "mgwdev-m365-helpers";
+
+// Create authenticated Graph client
+let authClient = new AuthHttpClient(authService, new FetchHttpClient());
+let graphClient = new BatchGraphClient(authClient);
+
+// Initialize the service
+let copilotService = new CopilotChatService(graphClient);
+
+// Start a new conversation
+await copilotService.initConversation();
+
+// Send a message and handle streaming response
+await copilotService.sendTextMessage(
+    "What are the key points from my recent emails?",
+    (message) => {
+        // Called for each streamed message chunk
+        console.log("Received:", message.text);
+    },
+    (finalResponse) => {
+        // Called when stream completes
+        console.log("Completed:", finalResponse.messages);
+    },
+    (error) => {
+        // Called on error
+        console.error("Error:", error);
+    }
+);
+```
+
+#### Advanced Usage with Context
+
+Send messages with file context and additional resources:
+
+```javascript
+// Set custom timezone (defaults to system timezone)
+copilotService.locationHint = { timeZone: "America/New_York" };
+
+// Send message with file context
+await copilotService.sendMessageBody(
+    {
+        message: { text: "Summarize this document" },
+        contextualResources: {
+            files: [
+                { uri: "https://contoso.sharepoint.com/sites/docs/report.docx" }
+            ],
+            webContext: { isWebEnabled: true }
+        },
+        additionalContext: {
+            text: "Focus on financial metrics",
+            description: "User preference"
+        }
+    },
+    (message) => console.log(message.text),
+    (response) => console.log("Done:", response),
+    (error) => console.error(error)
+);
+```
+
+#### Building a Chat UI
+
+Example of building a reactive chat interface:
+
+```javascript
+class CopilotChat {
+    private service: CopilotChatService;
+    private messages: string[] = [];
+
+    constructor(graphClient: IHttpClient) {
+        this.service = new CopilotChatService(graphClient);
+    }
+
+    async initialize() {
+        await this.service.initConversation();
+    }
+
+    async sendMessage(userMessage: string): Promise<void> {
+        this.messages.push(`You: ${userMessage}`);
+        let currentResponse = "";
+
+        await this.service.sendTextMessage(
+            userMessage,
+            (message) => {
+                // Update UI with streaming response
+                currentResponse = message.text;
+                this.updateUI(`Copilot: ${currentResponse}`);
+            },
+            (finalResponse) => {
+                // Handle attributions and citations
+                const lastMessage = finalResponse.messages[finalResponse.messages.length - 1];
+                if (lastMessage?.attributions) {
+                    this.displayCitations(lastMessage.attributions);
+                }
+            },
+            (error) => {
+                this.messages.push(`Error: ${error}`);
+            }
+        );
+
+        this.messages.push(`Copilot: ${currentResponse}`);
+    }
+
+    private updateUI(text: string) { /* Update your UI */ }
+    private displayCitations(attributions: any[]) { /* Show sources */ }
+}
+```
+
+#### Response Types
+
+The service provides typed responses:
+
+```typescript
+interface ICopilotResponseMessage {
+    text: string;                          // Message content
+    id: string;                            // Message ID
+    createdDateTime: string;               // Timestamp
+    adaptiveCards?: any[];                 // Rich card content
+    attributions?: ICopilotAttribution[];  // Source citations
+    sensitivityLabel?: ICopilotSensitivityLabel;  // Data classification
+}
+
+interface ICopilotConversationResponse {
+    id: string;                            // Conversation ID
+    messages: ICopilotResponseMessage[];   // All messages
+    agentId: string;                       // Copilot agent ID
+    createdDateTime: string;               // Conversation start time
+    displayName?: string;                  // Conversation title
+    state?: string;                        // Conversation state
+    turnCount?: number;                    // Number of exchanges
+}
+```
+
 More services documented in [services.md](./src/services/services.md).
 
 ## Development

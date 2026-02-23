@@ -7,11 +7,13 @@ export class PageAdvancedAnalyticsService {
     }
 
     public async getPageActivity(driveId: string, itemId: string, startDate: Date | undefined = undefined, endDate: Date | undefined = undefined, interval: string = "day"): Promise<IDriveItemActivity[]> {
-        startDate = startDate || new Date();
-        startDate.setMonth(startDate.getMonth() - 1);
-        endDate = endDate || new Date();
-        const startDateString = startDate.toISOString();
-        const endDateString = endDate.toISOString();
+        let start = startDate || new Date();
+        if (!startDate) {
+            start.setMonth(start.getMonth() - 1);
+        }
+        let end = endDate || new Date();
+        const startDateString = start.toISOString();
+        const endDateString = end.toISOString();
         const url = `${this.siteUrl}/_api/v2.0/drives/${driveId}/items/${itemId}/getActivitiesByInterval(startDateTime='${startDateString}',endDateTime='${endDateString}',interval='${interval}')`;
         const response = await this.httpClient.get(url);
         const data = await response.json();

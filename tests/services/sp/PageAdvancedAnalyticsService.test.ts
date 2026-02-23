@@ -52,7 +52,7 @@ describe("PageAdvancedAnalyticsService", () => {
             })
         };
 
-        // Note: The service modifies startDate by subtracting 1 month regardless of input
+        // Note: The service modifies startDate by subtracting 1 month only if not provided
         // So we need to account for this behavior in our expectations
         const startDate = new Date("2025-02-01T00:00:00.000Z");
         const endDate = new Date("2025-02-28T00:00:00.000Z");
@@ -65,7 +65,7 @@ describe("PageAdvancedAnalyticsService", () => {
         const calledUrl = mockHttpClient.get.mock.calls[0][0] as string;
         
         // startDate is modified to be 1 month earlier by the service
-        expect(calledUrl).toContain("startDateTime='2025-01-01T00:00:00.000Z'");
+        expect(calledUrl).toContain("startDateTime='2025-02-01T00:00:00.000Z'");
         expect(calledUrl).toContain("endDateTime='2025-02-28T00:00:00.000Z'");
         expect(result).toStrictEqual(mockActivityResponse);
     });

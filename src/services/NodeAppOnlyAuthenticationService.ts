@@ -14,6 +14,9 @@ export class NodeAppOnlyAuthenticationService implements IAuthenticationService{
         }
         this.clientApp = new msal.ConfidentialClientApplication(this.msalConfig);
     }
+    public async logout(): Promise<void> {
+    }
+
     public async getAccessToken(resource: string): Promise<string> {
         let tokenRequest = {
             scopes: [`${resource}/.default`],

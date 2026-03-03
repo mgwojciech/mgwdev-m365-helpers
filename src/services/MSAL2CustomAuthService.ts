@@ -211,6 +211,16 @@ export class MSAL2CustomAuthService implements IAuthenticationService {
         return authResult;
     }
 
+    public async logout(): Promise<void> {
+        this.resourceTokenMap.clear();
+        const keys = Object.keys(localStorage);
+        for (const key of keys) {
+            if (key.startsWith(`msal.${this.config.clientId}.`)) {
+                this.cacheService.remove(key);
+            }
+        }
+    }
+
     @queueRequest("msal-access-token-{0}")
     public async getAccessToken(resource: string): Promise<string> {
         let token = this.resourceTokenMap.get(resource);

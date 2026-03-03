@@ -78,6 +78,18 @@ export class Msal2AuthenticationService implements IAuthenticationService {
             scopes: [`${resource}/.default`]
         });
     }
+    public async logout(): Promise<void> {
+        await this.msalObj.initialize();
+        await this.msalObj.logoutPopup();
+        this.resourceTokenMap.clear();
+        const keys = Object.keys(sessionStorage);
+        for (const key of keys) {
+            if (key.startsWith(`msal.${this.config.clientId}.`)) {
+                sessionStorage.removeItem(key);
+            }
+        }
+    }
+
     @queueRequest("access-token-{0}")
     public async getAccessToken(resource: string): Promise<string> {
 

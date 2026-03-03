@@ -39,6 +39,11 @@ export class MsalAuthenticationService implements IAuthenticationService {
                 return token;
             })
     }
+    public async logout(): Promise<void> {
+        this.msalInstance.logout();
+        this.resourceTokenMap.clear();
+    }
+
     public async getAccessToken(resource: string = "https://graph.microsoft.com"): Promise<string> {
         let token = this.resourceTokenMap.get(resource);
         if (token && TokenUtils.isTokenValid(token)) {

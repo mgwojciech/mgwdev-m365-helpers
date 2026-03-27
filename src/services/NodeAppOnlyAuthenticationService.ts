@@ -17,6 +17,10 @@ export class NodeAppOnlyAuthenticationService implements IAuthenticationService{
     public async logout(): Promise<void> {
     }
 
+    public async isAuthenticated(): Promise<boolean> {
+        return true;
+    }
+
     public async getAccessToken(resource: string): Promise<string> {
         let tokenRequest = {
             scopes: [`${resource}/.default`],

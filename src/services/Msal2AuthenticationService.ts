@@ -98,6 +98,16 @@ export class Msal2AuthenticationService implements IAuthenticationService {
         }
     }
 
+    public async isAuthenticated(): Promise<boolean> {
+        await this.msalObj.initialize();
+        const accounts = this.msalObj.getAllAccounts();
+        if (accounts.length === 0) {
+            return false;
+        }
+        const claims = accounts[0].idTokenClaims as { exp?: number };
+        return TokenUtils.isExpValid(claims?.exp);
+    }
+
     @queueRequest("access-token-{0}")
     public async getAccessToken(resource: string): Promise<string> {
 

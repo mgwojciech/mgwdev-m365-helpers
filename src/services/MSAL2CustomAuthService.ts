@@ -211,6 +211,15 @@ export class MSAL2CustomAuthService implements IAuthenticationService {
         return authResult;
     }
 
+    public async isAuthenticated(): Promise<boolean> {
+        if (this.resourceTokenMap.size > 0) {
+            return true;
+        }
+        return Object.keys(localStorage).some(key =>
+            key.startsWith(`msal.${this.config.clientId}.`) && key.endsWith('.authResult')
+        );
+    }
+
     public async logout(): Promise<void> {
         this.resourceTokenMap.clear();
         const keys = Object.keys(localStorage);

@@ -42,6 +42,10 @@ export class MsalAuthenticationService implements IAuthenticationService {
                 return token;
             })
     }
+    public async isAuthenticated(): Promise<boolean> {
+        return !!this.msalInstance.getAccount();
+    }
+
     public async logout(): Promise<void> {
         this.msalInstance.logout();
         this.resourceTokenMap.clear();

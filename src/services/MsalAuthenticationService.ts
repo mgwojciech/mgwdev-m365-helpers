@@ -43,7 +43,11 @@ export class MsalAuthenticationService implements IAuthenticationService {
             })
     }
     public async isAuthenticated(): Promise<boolean> {
-        return !!this.msalInstance.getAccount();
+        const account = this.msalInstance.getAccount();
+        if (!account) {
+            return false;
+        }
+        return TokenUtils.isExpValid(Number(account.idTokenClaims?.exp) || undefined);
     }
 
     public async logout(): Promise<void> {

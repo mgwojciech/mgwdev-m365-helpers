@@ -5,11 +5,11 @@ export class TokenUtils{
         var tokenInfo = atob(accessToken.split(".")[1]);
         return JSON.parse(tokenInfo);
     }
+    public static isExpValid(exp: number | undefined): boolean {
+        return !!exp && exp > new Date().getTime() / 1000;
+    }
     public static isTokenValid(accessToken: string): boolean{
         let jwtToken = TokenUtils.getTokenInfo(accessToken);
-        if (jwtToken.exp < new Date().getTime() / 1000) {
-            return false;
-        }
-        return true;
+        return TokenUtils.isExpValid(jwtToken.exp);
     }
 }

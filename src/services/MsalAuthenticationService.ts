@@ -10,11 +10,14 @@ export class MsalAuthenticationService implements IAuthenticationService {
      * Initializes new instance of AuthenticationService
      * @param clientId AppId of an AAD app You configured in AAD.
      */
-    constructor(protected clientId, protected scopes: string[] = [".default"], protected tenantId = "organizations") {
+    constructor(protected clientId, protected scopes: string[] = [".default"], protected tenantId = "organizations", protected cacheLocation: "sessionStorage" | "localStorage" = "sessionStorage") {
         const msalConfig = {
             auth: {
                 clientId: clientId,
                 authority: `https://login.microsoftonline.com/${tenantId}/`,
+            },
+            cache: {
+                cacheLocation: cacheLocation
             }
         };
 

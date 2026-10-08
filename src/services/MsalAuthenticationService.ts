@@ -1,5 +1,6 @@
 import * as Msal from "msal";
 import { TokenUtils } from "../utils";
+import { MsalCacheUtils } from "../utils/MsalCacheUtils";
 import { queueRequest } from "../utils/FunctionUtils";
 import { IAuthenticationService } from "./IAuthenticationService";
 
@@ -10,11 +11,14 @@ export class MsalAuthenticationService implements IAuthenticationService {
      * Initializes new instance of AuthenticationService
      * @param clientId AppId of an AAD app You configured in AAD.
      */
-    constructor(protected clientId, protected scopes: string[] = [".default"], protected tenantId = "organizations") {
+    constructor(protected clientId, protected scopes: string[] = [".default"], protected tenantId = "organizations", protected cacheLocation: "sessionStorage" | "localStorage" = "sessionStorage") {
         const msalConfig = {
             auth: {
                 clientId: clientId,
                 authority: `https://login.microsoftonline.com/${tenantId}/`,
+            },
+            cache: {
+                cacheLocation: cacheLocation
             }
         };
 
@@ -39,6 +43,24 @@ export class MsalAuthenticationService implements IAuthenticationService {
                 return token;
             })
     }
+    public async isAuthenticated(): Promise<boolean> {
+        const account = this.msalInstance.getAccount();
+        if (!account) {
+            return false;
+        }
+        return TokenUtils.isExpValid(Number(account.idTokenClaims?.exp) || undefined);
+    }
+
+    public async logout(): Promise<void> {
+        this.msalInstance.logout();
+        this.resourceTokenMap.clear();
+    }
+
+    public async clearCache(): Promise<void> {
+        this.resourceTokenMap.clear();
+        MsalCacheUtils.clearStorageKeys(this.clientId);
+    }
+
     public async getAccessToken(resource: string = "https://graph.microsoft.com"): Promise<string> {
         let token = this.resourceTokenMap.get(resource);
         if (token && TokenUtils.isTokenValid(token)) {

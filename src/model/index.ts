@@ -4,3 +4,4 @@ export * from "./IUser";
 export * from "./dataProvider";
 export * from "./sharepoint";
 export * from "./infra/ICacheEntry"
+export * from "./graph/Copilot";

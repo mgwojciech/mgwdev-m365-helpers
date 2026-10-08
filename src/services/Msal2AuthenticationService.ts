@@ -1,4 +1,5 @@
 import { AuthenticationResult, InteractionRequiredAuthError, PublicClientApplication } from '@azure/msal-browser';
+import { MsalCacheUtils } from '../utils/MsalCacheUtils';
 import { TokenUtils } from '../utils/TokenUtils';
 import { IAuthenticationService } from './IAuthenticationService';
 import { queueRequest } from '../utils/FunctionUtils';
@@ -20,6 +21,10 @@ export interface IMsalAuthenticationConfig {
      * The scopes to use for the authentication request. If not specified, the ./default scope will be used.
      */
     scopes?: string[];
+    /**
+     * The cache location to use for storing tokens. Defaults to "sessionStorage".
+     */
+    cacheLocation?: "sessionStorage" | "localStorage";
 }
 
 /**
@@ -29,9 +34,13 @@ export class Msal2AuthenticationService implements IAuthenticationService {
     protected msalObj;
     protected resourceTokenMap: Map<string, string> = new Map<string, string>();
     public resourceScopeMap: Map<string, string[]> = new Map<string, string[]>();
+    protected get storage(): Storage {
+        return this.config.cacheLocation === "localStorage" ? localStorage : sessionStorage;
+    }
     constructor(public config: IMsalAuthenticationConfig, protected usePopup: boolean = true) {
         this.config.tenantId = config.tenantId || 'common';
         this.config.redirectUri = config.redirectUri || window.location.origin;
+        this.config.cacheLocation = config.cacheLocation || "sessionStorage";
         this.msalObj = new PublicClientApplication({
             auth: {
                 clientId: config.clientId,
@@ -39,7 +48,7 @@ export class Msal2AuthenticationService implements IAuthenticationService {
                 redirectUri: config.redirectUri
             },
             cache: {
-                cacheLocation: "sessionStorage"
+                cacheLocation: this.config.cacheLocation
             }
         });
     }
@@ -50,7 +59,7 @@ export class Msal2AuthenticationService implements IAuthenticationService {
             scopes.forEach(s => {
                 try {
                     const resource = new URL(s).origin;
-                    sessionStorage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, resp.accessToken);
+                    this.storage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, resp.accessToken);
                     this.resourceTokenMap.set(resource, resp.accessToken);
                     // Remove the code from the URL
                     if (window.history && window.history.replaceState) {
@@ -78,6 +87,35 @@ export class Msal2AuthenticationService implements IAuthenticationService {
             scopes: [`${resource}/.default`]
         });
     }
+    public async logout(): Promise<void> {
+        await this.msalObj.initialize();
+        await this.msalObj.logoutPopup();
+        this.resourceTokenMap.clear();
+        const keys = Object.keys(this.storage);
+        for (const key of keys) {
+            if (key.startsWith(`msal.${this.config.clientId}.`)) {
+                this.storage.removeItem(key);
+            }
+        }
+    }
+
+    public async clearCache(): Promise<void> {
+        this.resourceTokenMap.clear();
+        await this.msalObj.initialize();
+        await this.msalObj.clearCache();
+        MsalCacheUtils.clearStorageKeys(this.config.clientId);
+    }
+
+    public async isAuthenticated(): Promise<boolean> {
+        await this.msalObj.initialize();
+        const accounts = this.msalObj.getAllAccounts();
+        if (accounts.length === 0) {
+            return false;
+        }
+        const claims = accounts[0].idTokenClaims as { exp?: number };
+        return TokenUtils.isExpValid(claims?.exp);
+    }
+
     @queueRequest("access-token-{0}")
     public async getAccessToken(resource: string): Promise<string> {
 
@@ -93,7 +131,7 @@ export class Msal2AuthenticationService implements IAuthenticationService {
         }
         let token: string | null | undefined = this.resourceTokenMap.get(resource);
         if (!token) {
-            token = sessionStorage.getItem(`msal.${this.config.clientId}.${resource}.idtoken`);
+            token = this.storage.getItem(`msal.${this.config.clientId}.${resource}.idtoken`);
         }
         if (token && TokenUtils.isTokenValid(token)) {
             return token;
@@ -110,7 +148,7 @@ export class Msal2AuthenticationService implements IAuthenticationService {
             }
         }
         token = authResult?.accessToken || "";
-        sessionStorage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, token);
+        this.storage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, token);
         this.resourceTokenMap.set(resource, token);
         return token;
     }

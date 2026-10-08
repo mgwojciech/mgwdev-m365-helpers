@@ -6,6 +6,7 @@ export interface IHttpClientResponse {
     headers?: any;
     status: number;
     statusText?: string;
+    body?: ReadableStream<Uint8Array>;
 }
 
 export interface IHttpClient {

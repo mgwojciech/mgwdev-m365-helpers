@@ -1,5 +1,6 @@
 import { queueRequest } from "../utils/FunctionUtils";
 import { generateGuid, generateRandomString } from "../utils/IdGenerator";
+import { MsalCacheUtils } from "../utils/MsalCacheUtils";
 import { TokenUtils } from "../utils/TokenUtils";
 import { IAuthenticationService } from "./IAuthenticationService";
 import { IMsalAuthenticationConfig } from "./Msal2AuthenticationService";
@@ -209,6 +210,32 @@ export class MSAL2CustomAuthService implements IAuthenticationService {
         this.cacheService.set(`msal.${this.config.clientId}.${resource}.authResult`, authResult);
         this.resourceTokenMap.set(resource, authResult.access_token);
         return authResult;
+    }
+
+    public async isAuthenticated(): Promise<boolean> {
+        const authResultKey = Object.keys(localStorage).find(key =>
+            key.startsWith(`msal.${this.config.clientId}.`) && key.endsWith('.authResult')
+        );
+        if (!authResultKey) {
+            return false;
+        }
+        const authResult = this.cacheService.get<ICustomAuthResult>(authResultKey);
+        return !!authResult?.id_token && TokenUtils.isTokenValid(authResult.id_token);
+    }
+
+    public async logout(): Promise<void> {
+        this.resourceTokenMap.clear();
+        const keys = Object.keys(localStorage);
+        for (const key of keys) {
+            if (key.startsWith(`msal.${this.config.clientId}.`)) {
+                this.cacheService.remove(key);
+            }
+        }
+    }
+
+    public async clearCache(): Promise<void> {
+        this.resourceTokenMap.clear();
+        MsalCacheUtils.clearStorageKeys(this.config.clientId);
     }
 
     @queueRequest("msal-access-token-{0}")

@@ -5,3 +5,4 @@ export * from "./TokenUtils";
 export * from "./DebounceHandler";
 export * from "./BlobUtils";
 export * from "./ImageHelper";
+export * from "./MsalCacheUtils";

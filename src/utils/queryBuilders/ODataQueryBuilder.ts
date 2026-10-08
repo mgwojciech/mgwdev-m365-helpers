@@ -7,7 +7,7 @@ import { IQueryBuilder } from "./IQueryBuilder";
  */
 export class ODataQueryBuilder implements IQueryBuilder {
     protected query: string = "";
-    protected oDataSupportedComparers: string[] = ['BeginsWith', 'Contains', 'Eq', 'IDEq', 'Geq', 'Gt', 'IsNotNull', 'IsNull', 'Leq', 'Lt', 'Neq']
+    protected oDataSupportedComparers: string[] = ['BeginsWith', 'Contains', 'Eq', 'IDEq', 'Geq', 'Gt', 'IsNotNull', 'IsNull', 'Leq', 'Lt', 'Neq', "E:"]
     public withQuery(query: string, joinBy: "And" | "Or" = "And"): IQueryBuilder {
         if (this.query) {
             this.query = `(${this.query}) ${joinBy.toLocaleLowerCase()} (${query})`
@@ -52,6 +52,10 @@ export class ODataQueryBuilder implements IQueryBuilder {
                 break;
             default:
                 if (this.oDataSupportedComparers.indexOf(fieldInfo.comparer) >= 0) {
+                    if(fieldInfo.comparer === "E:") {
+                        newQuery += `${fieldInfo.name}(e:${fieldInfo.value})`;
+                        break;
+                    }
                     if (fieldInfo.comparer === "Contains") {
                         newQuery = `substringof('${fieldInfo.value}', ${fieldInfo.name})`;
                         break;
@@ -61,8 +65,8 @@ export class ODataQueryBuilder implements IQueryBuilder {
                         break;
                     }
                     else {
-                        newQuery = `${fieldInfo.name} ${fieldInfo.comparer.toLocaleLowerCase().replace('geq', 'ge').replace("leq","le")} `;
-                        if (fieldInfo.type && (fieldInfo.type === "Number" || fieldInfo.type === "Counter" || fieldInfo.type === "Integer")) {
+                        newQuery = `${fieldInfo.name} ${fieldInfo.comparer.toLocaleLowerCase().replace('geq', 'ge').replace("leq","le").replace("neq","ne")} `;
+                        if (fieldInfo.type && (fieldInfo.type === "Number" || fieldInfo.type === "Counter" || fieldInfo.type === "Integer" || fieldInfo.type === "Boolean")) {
                             newQuery += fieldInfo.value;
                         }
                         else if (fieldInfo.type && (fieldInfo.type === "Guid")) {

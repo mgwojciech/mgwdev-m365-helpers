@@ -65,7 +65,7 @@ describe("ODataPagedDataProvider", () => {
             id: 1,
             title: "Test"
         }]);
-        expect(httpClient.get).toBeCalledWith("test-resource?$top=25&$orderBy=title asc");
+        expect(httpClient.get).toBeCalledWith("test-resource?$top=25&$orderby=title asc");
     });
     test("should return data with expand", async () => {
         let httpClient = {

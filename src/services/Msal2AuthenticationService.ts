@@ -136,16 +136,22 @@ export class Msal2AuthenticationService implements IAuthenticationService {
         if (token && TokenUtils.isTokenValid(token)) {
             return token;
         }
+        const scopes = [`${resource}/.default`];
         let authResult;
         try {
-            authResult = await this.msalObj.ssoSilent({
-                scopes: [`${resource}/.default`]
-            });
+            const account = this.msalObj.getActiveAccount() ?? this.msalObj.getAllAccounts()[0];
+            // acquireTokenSilent uses the cached refresh token over a direct /token call. ssoSilent needs a
+            // hidden iframe, which Safari ITP and Chrome's Local Network Access policy block on localhost.
+            authResult = account
+                ? await this.msalObj.acquireTokenSilent({ account, scopes })
+                : await this.msalObj.ssoSilent({ scopes });
         }
         catch (err) {
-            if (err instanceof InteractionRequiredAuthError) {
-                authResult = await this.login(resource);
+            if (!(err instanceof InteractionRequiredAuthError)) {
+                // Swallowing this returned "" and produced an empty "Bearer " header on every request.
+                throw err;
             }
+            authResult = await this.login(resource);
         }
         token = authResult?.accessToken || "";
         this.storage.setItem(`msal.${this.config.clientId}.${resource}.idtoken`, token);

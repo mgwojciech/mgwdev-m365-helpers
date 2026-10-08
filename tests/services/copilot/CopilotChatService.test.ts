@@ -62,7 +62,7 @@ describe("CopilotChatService", () => {
             const service = new CopilotChatService(mockClient);
             await service.initConversation();
 
-            expect(mockClient.post).toHaveBeenCalledWith("/copilot/conversations", {
+            expect(mockClient.post).toHaveBeenCalledWith("/beta/copilot/conversations", {
                 headers: {
                     "Content-Type": "application/json",
                     Accept: "application/json",
@@ -139,7 +139,7 @@ describe("CopilotChatService", () => {
 
             expect(postMock).toHaveBeenCalledTimes(2);
             expect(postMock).toHaveBeenLastCalledWith(
-                `https://graph.microsoft.com/beta/copilot/conversations/${mockConversationId}/chatOverStream`,
+                `/beta/copilot/conversations/${mockConversationId}/chatOverStream`,
                 expect.objectContaining({
                     headers: { "Content-Type": "application/json" },
                     body: expect.stringContaining('"message":{"text":"Hello"}'),

@@ -95,7 +95,7 @@ export class SPListItemCamlPagedDataProvider<T> implements IPagedDataProvider<T>
     return this.previousPageIndex + 1;
   }
 
-  protected async getResponse(apiResponse){
+  protected async getResponse(apiResponse: any){
     return await apiResponse.json();
   }
   public async getDataWithAPI(url: string): Promise<T[]> {

@@ -2,6 +2,7 @@ import { IHttpClient } from "../../dal";
 import { ICopilotConversationResponse, ICopilotMessageBody, ICopilotResponseMessage } from "../../model/graph/Copilot";
 
 export class CopilotChatService {
+    public conversationApi = "/beta/copilot/conversations";
     protected converstationId: string | undefined = undefined;
     public locationHint: { timeZone: string } = { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone };
     constructor(protected graphClient: IHttpClient) {
@@ -9,7 +10,7 @@ export class CopilotChatService {
     }
 
     public async initConversation() {
-        const response = await this.graphClient.post("/copilot/conversations", {
+        const response = await this.graphClient.post(this.conversationApi, {
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
@@ -35,7 +36,7 @@ export class CopilotChatService {
         onCompleted: (lastMessage: ICopilotConversationResponse) => void,
         onError: (error: any) => void) {
         const response = await this.graphClient.post(
-            `https://graph.microsoft.com/beta/copilot/conversations/${this.converstationId}/chatOverStream`,
+            `${this.conversationApi}/${this.converstationId}/chatOverStream`,
             {
                 headers: {
                     "Content-Type": "application/json",

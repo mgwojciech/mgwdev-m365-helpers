@@ -19,12 +19,12 @@ describe("DriveItemUtils", () => {
     test("should throw exception if fileAbsoluteUrl is not provided", () => {
         expect(() => {
             DriveItemUtils.getFileSharesApiUri("");
-        }).toThrowError("fileAbsoluteUrl is required");
+        }).toThrow("fileAbsoluteUrl is required");
     });
     test("should throw exception if fileAbsoluteUrl does not start with https://", () => {
         expect(() => {
             DriveItemUtils.getFileSharesApiUri("http://contoso.sharepoint.com/sites/site1/Shared%20Documents/Document.docx");
-        }).toThrowError("fileAbsoluteUrl must start with https://");
+        }).toThrow("fileAbsoluteUrl must start with https://");
     });
     test("should trim trailing character", () => {
         const actual = DriveItemUtils.trimEndCharacter("test/", "/");

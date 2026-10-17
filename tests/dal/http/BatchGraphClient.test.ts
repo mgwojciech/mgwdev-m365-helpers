@@ -506,7 +506,7 @@ describe("BatchGraphClient", () => {
         let me = await mePromise;
         let group = await groupPromise;
 
-        expect(batchHandlerSpy).toBeCalledTimes(6);
+        expect(batchHandlerSpy).toHaveBeenCalledTimes(6);
         assert.isFalse(me.ok);
         assert.deepEqual((await group.json()), {
             value: [{
@@ -600,7 +600,7 @@ describe("BatchGraphClient", () => {
         let me = await mePromise;
         let group = await groupPromise;
 
-        expect(batchHandlerSpy).toBeCalledTimes(6);
+        expect(batchHandlerSpy).toHaveBeenCalledTimes(6);
         assert.isFalse(me.ok);
         assert.deepEqual((await group.json()), {
             value: [{
@@ -816,8 +816,8 @@ describe("BatchGraphClient", () => {
         let deleteSpy = jest.spyOn(baseClient, "delete");
 
         await Promise.all([batchClient.patch(""), batchClient.put(""), batchClient.delete("")]);
-        expect(patchSpy).toBeCalledTimes(1);
-        expect(putSpy).toBeCalledTimes(1);
-        expect(deleteSpy).toBeCalledTimes(1);
+        expect(patchSpy).toHaveBeenCalledTimes(1);
+        expect(putSpy).toHaveBeenCalledTimes(1);
+        expect(deleteSpy).toHaveBeenCalledTimes(1);
     })
 });

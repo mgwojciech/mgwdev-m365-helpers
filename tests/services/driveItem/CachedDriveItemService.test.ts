@@ -1,10 +1,11 @@
 
 ///<reference types="jest" />
+import type { IDriveItemService } from "../../../src/services/driveItem/IDriveItemService";
 import { InMemoryCacheService } from "../../../src/services";
 import { CacheDriveItemService } from "../../../src/services/driveItem/CachedDriveItemService";
 
 describe("CacheDriveItemService", () => {
-    let baseService
+    let baseService: IDriveItemService;
     beforeEach(() => {
         baseService = {
             getDriveItemContent: jest.fn().mockReturnValue(Promise.resolve(new Blob(["Hello World!"], { type: 'text/plain' }))),
@@ -30,7 +31,7 @@ describe("CacheDriveItemService", () => {
         const file = await service.getDriveItemContent(fileUrl);
         const fileText = await file.text();
         expect(fileText).toBe("Hello World!");
-        expect(graphClient.get).toBeCalledWith("/v1.0/shares/u!aHR0cHM6Ly90ZXN0LnNoYXJlcG9pbnQuY29tL3NpdGVzL3Rlc3Qtc2l0ZXMvc2hhcmVkJTIwZG9jdW1lbnRzL1Rlc3QlMjBGaWxlLmFzcHg/driveItem/file/hashes/quickXorHash")
+        expect(graphClient.get).toHaveBeenCalledWith("/v1.0/shares/u!aHR0cHM6Ly90ZXN0LnNoYXJlcG9pbnQuY29tL3NpdGVzL3Rlc3Qtc2l0ZXMvc2hhcmVkJTIwZG9jdW1lbnRzL1Rlc3QlMjBGaWxlLmFzcHg/driveItem/file/hashes/quickXorHash")
         expect(service.cacheService.get<string>("https://test.sharepoint.com/sites/test-sites/shared documents/Test File.aspx-hash")).toBe("testhash")
         expect(service.cacheService.get<string>("https://test.sharepoint.com/sites/test-sites/shared documents/Test File.aspx-content")).toBe("data:text/plain;base64,SGVsbG8gV29ybGQh");
     });
@@ -55,8 +56,8 @@ describe("CacheDriveItemService", () => {
         const file = await service.getDriveItemContent(fileUrl);
         const fileText = await file.text();
         expect(fileText).toBe("Hello World!");
-        expect(graphClient.get).toBeCalledTimes(1);
-        expect(baseService.getDriveItemContent).toBeCalledTimes(0);
+        expect(graphClient.get).toHaveBeenCalledTimes(1);
+        expect(baseService.getDriveItemContent).toHaveBeenCalledTimes(0);
     })
     test("should get by absolute url from base service when hashes doesn't match", async () => {
         const graphClient = {
@@ -79,8 +80,8 @@ describe("CacheDriveItemService", () => {
         const file = await service.getDriveItemContent(fileUrl);
         const fileText = await file.text();
         expect(fileText).toBe("Hello World!");
-        expect(graphClient.get).toBeCalledTimes(1);
-        expect(baseService.getDriveItemContent).toBeCalledTimes(1);
+        expect(graphClient.get).toHaveBeenCalledTimes(1);
+        expect(baseService.getDriveItemContent).toHaveBeenCalledTimes(1);
     })
     test("should get by id with empty cache", async () => {
         const graphClient = {
@@ -101,7 +102,7 @@ describe("CacheDriveItemService", () => {
         const file = await service.getDriveItemContentById(driveId, itemId);
         const fileText = await file.text();
         expect(fileText).toBe("Hello World!");
-        expect(graphClient.get).toBeCalledWith("/v1.0/drives/test-drive-id/items/test-item-id/file/hashes/quickXorHash")
+        expect(graphClient.get).toHaveBeenCalledWith("/v1.0/drives/test-drive-id/items/test-item-id/file/hashes/quickXorHash")
         expect(service.cacheService.get<string>("test-drive-id-test-item-id-hash")).toBe("testhash")
         expect(service.cacheService.get<string>("test-drive-id-test-item-id-content")).toBe("data:text/plain;base64,SGVsbG8gV29ybGQh");
     });
@@ -127,8 +128,8 @@ describe("CacheDriveItemService", () => {
         const file = await service.getDriveItemContentById(driveId, itemId);
         const fileText = await file.text();
         expect(fileText).toBe("Hello World!");
-        expect(graphClient.get).toBeCalledTimes(1);
-        expect(baseService.getDriveItemContentById).toBeCalledTimes(0);
+        expect(graphClient.get).toHaveBeenCalledTimes(1);
+        expect(baseService.getDriveItemContentById).toHaveBeenCalledTimes(0);
     });
     test("should get by id from base service when hashes doesn't match", async () => {
         const graphClient = {
@@ -152,8 +153,8 @@ describe("CacheDriveItemService", () => {
         const file = await service.getDriveItemContentById(driveId, itemId);
         const fileText = await file.text();
         expect(fileText).toBe("Hello World!");
-        expect(graphClient.get).toBeCalledTimes(1);
-        expect(baseService.getDriveItemContentById).toBeCalledTimes(1);
+        expect(graphClient.get).toHaveBeenCalledTimes(1);
+        expect(baseService.getDriveItemContentById).toHaveBeenCalledTimes(1);
         expect(service.cacheService.get<string>("test-drive-id-test-item-id-hash")).toBe("testhash")
         expect(service.cacheService.get<string>("test-drive-id-test-item-id-content")).toBe("data:text/plain;base64,SGVsbG8gV29ybGQh");
     })

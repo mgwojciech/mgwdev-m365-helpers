@@ -5,3 +5,4 @@ export * from "./dataProvider";
 export * from "./sharepoint";
 export * from "./infra/ICacheEntry"
 export * from "./graph/Copilot";
+export * from "./IEntityWithIdAndDisplayName";

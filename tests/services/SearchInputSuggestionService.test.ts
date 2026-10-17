@@ -46,7 +46,7 @@ describe("SearchInputSuggestionService", () => {
 
         expect(suggestions.value).toStrictEqual(expectedSuggestions);
         expect(suggestions.areSuggestionsProps).toBe(false);
-        expect(searchClient.setQuery).toBeCalledWith("Title:Tes*")
+        expect(searchClient.setQuery).toHaveBeenCalledWith("Title:Tes*")
     });
     test("should return values for secondary search", async () => {
         const searchClient = {
@@ -70,6 +70,6 @@ describe("SearchInputSuggestionService", () => {
 
         expect(suggestions.value).toStrictEqual(expectedSuggestions);
         expect(suggestions.areSuggestionsProps).toBe(false);
-        expect(searchClient.setQuery).toBeCalledWith("TestProperty1=Test AND Title:Tes*")
+        expect(searchClient.setQuery).toHaveBeenCalledWith("TestProperty1=Test AND Title:Tes*")
     })
 })

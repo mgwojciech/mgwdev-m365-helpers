@@ -49,7 +49,7 @@ describe("ODataQueryBuilder", () => {
                 type: "",
                 comparer: "Eq"
             });
-        }).toThrowError("Field name is required");
+        }).toThrow("Field name is required");
     })
     test("should throw an exception for not ok field type", () => {
         let odataQueryBuilder = new ODataQueryBuilder();
@@ -61,7 +61,7 @@ describe("ODataQueryBuilder", () => {
                 type: "",
                 comparer: "Eq"
             });
-        }).toThrowError("Field type is required");
+        }).toThrow("Field type is required");
     });
 
     test("should build a query with multiple fields", () => {

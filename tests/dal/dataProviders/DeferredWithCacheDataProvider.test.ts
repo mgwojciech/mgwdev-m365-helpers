@@ -18,7 +18,7 @@ describe("DeferredWithCacheDataProvider", () => {
         expect(data.cached).toBe("Test from cache");
         let newData = await data.dataPromise;
         expect(newData).toBe("Test");
-        expect(setDataSpy).toBeCalledWith("test-key", "Test");
+        expect(setDataSpy).toHaveBeenCalledWith("test-key", "Test");
     });
     test("should handle query input", async () => {
         let dataProvider = {
@@ -38,7 +38,7 @@ describe("DeferredWithCacheDataProvider", () => {
         expect(data.cached).toBe("Test from cache");
         let newData = await data.dataPromise;
         expect(newData).toBe("Test");
-        expect(setDataSpy).toBeCalledWith("test-key", "Test");
+        expect(setDataSpy).toHaveBeenCalledWith("test-key", "Test");
         expect(getDataSpy).toHaveBeenCalledWith({ queryProp1: "Test query property" });
     });
 });

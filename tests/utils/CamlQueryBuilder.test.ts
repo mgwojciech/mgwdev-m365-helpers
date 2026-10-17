@@ -56,7 +56,7 @@ describe("CamlQueryBuilder", () => {
 				type: "Text",
 				comparer: "Eq"
 			});
-		}).toThrowError("Field name is required");
+		}).toThrow("Field name is required");
 	})
 	test("should throw and exception for not ok field type", () => {
 		let camlQueryBuilder = new CamlQueryBuilder();
@@ -68,7 +68,7 @@ describe("CamlQueryBuilder", () => {
 				type: "",
 				comparer: "Eq"
 			});
-		}).toThrowError("Field type is required");
+		}).toThrow("Field type is required");
 	})
 	test("should default to Eq for not ok field comparer", () => {
 		let camlQueryBuilder = new CamlQueryBuilder();

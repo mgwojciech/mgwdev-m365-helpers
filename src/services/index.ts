@@ -10,3 +10,4 @@ export * from "./SearchInputSuggestionService";
 export * from "./sp/PageAdvancedAnalyticsService";
 export * from "./copilot/CopilotChatService";
 export * from "./copilot/WorkIQChatService";
+export * from "./dataverse";

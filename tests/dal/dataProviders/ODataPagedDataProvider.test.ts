@@ -21,7 +21,7 @@ describe("ODataPagedDataProvider", () => {
             id: 1,
             title: "Test"
         }]);
-        expect(httpClient.get).toBeCalledWith("test-resource?$top=25");
+        expect(httpClient.get).toHaveBeenCalledWith("test-resource?$top=25");
     });
     test("should return data with filter", async () => {
         let httpClient = {
@@ -43,7 +43,7 @@ describe("ODataPagedDataProvider", () => {
             id: 1,
             title: "Test"
         }]);
-        expect(httpClient.get).toBeCalledWith("test-resource?$top=25&$filter=title eq 'Test'");
+        expect(httpClient.get).toHaveBeenCalledWith("test-resource?$top=25&$filter=title eq 'Test'");
     });
     test("should return data with order", async () => {
         let httpClient = {
@@ -65,7 +65,7 @@ describe("ODataPagedDataProvider", () => {
             id: 1,
             title: "Test"
         }]);
-        expect(httpClient.get).toBeCalledWith("test-resource?$top=25&$orderby=title asc");
+        expect(httpClient.get).toHaveBeenCalledWith("test-resource?$top=25&$orderby=title asc");
     });
     test("should return data with expand", async () => {
         let httpClient = {
@@ -86,7 +86,7 @@ describe("ODataPagedDataProvider", () => {
             id: 1,
             title: "Test"
         }]);
-        expect(httpClient.get).toBeCalledWith("test-resource?$top=25&$expand=test");
+        expect(httpClient.get).toHaveBeenCalledWith("test-resource?$top=25&$expand=test");
     });
     test("should return data with select", async () => {
         let httpClient = {
@@ -107,7 +107,7 @@ describe("ODataPagedDataProvider", () => {
             id: 1,
             title: "Test"
         }]);
-        expect(httpClient.get).toBeCalledWith("test-resource?$top=25&$select=title");
+        expect(httpClient.get).toHaveBeenCalledWith("test-resource?$top=25&$select=title");
     });
     test("should return next page", async () => {
         let httpClient = {

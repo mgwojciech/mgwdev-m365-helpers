@@ -9,3 +9,4 @@ export * from "./CopilotRetrievalDataProvider";
 export * from "./DataversePagedDataProvider";
 export * from "./SPSearchDataProvider";
 export * from "./SPSearchAnalyticsDataProvider";
+export * from "./DataverseFetchXMLDataProvider";

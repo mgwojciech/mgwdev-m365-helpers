@@ -38,4 +38,8 @@ export interface IQueryField {
     | 'CurrentUserGroups'
     | 'E:';
   includeTimeValue?: boolean;
+  /**
+   * Optional parameter - will be used to join with existing query using provided operation
+   */
+  joinWith?: "And" | "Or";
 }

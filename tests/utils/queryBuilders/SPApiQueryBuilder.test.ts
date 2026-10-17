@@ -1,6 +1,6 @@
 ///<reference types="jest" />
-import { IAggregationRequest, IFilterRequest } from "../../src/model";
-import { SPApiQueryBuilder } from "../../src/utils/queryBuilders/SPApiQueryBuilder";
+import { IAggregationRequest, IFilterRequest } from "../../../src/model";
+import { SPApiQueryBuilder } from "../../../src/utils/queryBuilders/SPApiQueryBuilder";
 
 const siteUrl: string = "https://test.sharepoint.com/sites/test"
 describe("SPApiQueryBuilder", ()=>{

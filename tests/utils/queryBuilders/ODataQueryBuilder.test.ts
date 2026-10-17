@@ -1,5 +1,5 @@
 ///<reference types="jest" />
-import { ODataQueryBuilder } from "../../src/utils/queryBuilders/ODataQueryBuilder";
+import { ODataQueryBuilder } from "../../../src/utils/queryBuilders/ODataQueryBuilder";
 
 describe("ODataQueryBuilder", () => {
     test("should build a query with two queries", () => {

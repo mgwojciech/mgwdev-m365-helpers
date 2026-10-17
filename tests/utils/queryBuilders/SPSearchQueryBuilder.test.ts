@@ -1,6 +1,6 @@
 ///<reference types="jest" />
-import { IAggregationRequest, IFilterRequest } from "../../src/model";
-import { SPSearchQueryBuilder } from "../../src/utils/SPSearchQueryBuilder";
+import { IAggregationRequest, IFilterRequest } from "../../../src/model";
+import { SPSearchQueryBuilder } from "../../../src/utils/SPSearchQueryBuilder";
 
 describe("SPSearchQueryBuilder", () => {
 	let queryBuilder: SPSearchQueryBuilder;
